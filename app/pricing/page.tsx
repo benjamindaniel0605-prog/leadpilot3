@@ -130,13 +130,24 @@ export default function PricingPage() {
                 }`}
               >
                 Annuel
-                {isYearly && (
-                  <span className="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                    -2 mois offerts
-                  </span>
-                )}
+                <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold transition-all ${
+                  isYearly 
+                    ? 'bg-green-500 text-white scale-110' 
+                    : 'bg-green-500/20 text-green-400'
+                }`}>
+                  -2 mois offerts
+                </span>
               </button>
             </div>
+            {isYearly && (
+              <div className="ml-4 flex items-center">
+                <div className="bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-2">
+                  <span className="text-green-400 text-sm font-medium">
+                    💰 Économisez 2 mois de facturation !
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -162,7 +173,7 @@ export default function PricingPage() {
                 </span>
                 {isYearly && (
                   <div className="text-sm text-green-400 mt-1 font-semibold">
-                    Soit {Math.round(plans.starter.yearly / 10)}€/mois (-17% d'économie)
+                    Soit 41€/mois
                   </div>
                 )}
               </div>
@@ -207,7 +218,7 @@ export default function PricingPage() {
                 </span>
                 {isYearly && (
                   <div className="text-sm text-green-400 mt-1 font-semibold">
-                    Soit {Math.round(plans.pro.yearly / 10)}€/mois (-17% d'économie)
+                    Soit 83€/mois
                   </div>
                 )}
               </div>
@@ -248,7 +259,7 @@ export default function PricingPage() {
                 </span>
                 {isYearly && (
                   <div className="text-sm text-green-400 mt-1 font-semibold">
-                    Soit {Math.round(plans.growth.yearly / 10)}€/mois (-17% d'économie)
+                    Soit 249€/mois
                   </div>
                 )}
               </div>
