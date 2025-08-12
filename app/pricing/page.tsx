@@ -131,8 +131,8 @@ export default function PricingPage() {
               >
                 Annuel
                 {isYearly && (
-                  <span className="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                    2 mois offerts
+                  <span className="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                    -2 mois offerts
                   </span>
                 )}
               </button>
@@ -161,8 +161,8 @@ export default function PricingPage() {
                   {isYearly ? '/an' : '/mois'}
                 </span>
                 {isYearly && (
-                  <div className="text-sm text-gray-400 mt-1">
-                    Soit {plans.starter.monthly}€/mois
+                  <div className="text-sm text-green-400 mt-1 font-semibold">
+                    Soit {Math.round(plans.starter.yearly / 10)}€/mois (-17% d'économie)
                   </div>
                 )}
               </div>
@@ -206,8 +206,8 @@ export default function PricingPage() {
                   {isYearly ? '/an' : '/mois'}
                 </span>
                 {isYearly && (
-                  <div className="text-sm text-gray-400 mt-1">
-                    Soit {plans.pro.monthly}€/mois
+                  <div className="text-sm text-green-400 mt-1 font-semibold">
+                    Soit {Math.round(plans.pro.yearly / 10)}€/mois (-17% d'économie)
                   </div>
                 )}
               </div>
@@ -247,8 +247,8 @@ export default function PricingPage() {
                   {isYearly ? '/an' : '/mois'}
                 </span>
                 {isYearly && (
-                  <div className="text-sm text-gray-400 mt-1">
-                    Soit {plans.growth.monthly}€/mois
+                  <div className="text-sm text-green-400 mt-1 font-semibold">
+                    Soit {Math.round(plans.growth.yearly / 10)}€/mois (-17% d'économie)
                   </div>
                 )}
               </div>
