@@ -35,7 +35,8 @@ export default function PricingPage() {
 
   const plans = {
     starter: {
-      monthly: { price: 49, yearly: 490 },
+      monthly: 49,
+      yearly: 490,
       features: [
         '100 leads par mois',
         '5 templates email',
@@ -48,7 +49,8 @@ export default function PricingPage() {
       ]
     },
     pro: {
-      monthly: { price: 99, yearly: 990 },
+      monthly: 99,
+      yearly: 990,
       features: [
         'Essai gratuit 14 jours sans engagement',
         'Tout Starter +',
@@ -61,7 +63,8 @@ export default function PricingPage() {
       ]
     },
     growth: {
-      monthly: { price: 299, yearly: 2990 },
+      monthly: 299,
+      yearly: 2990,
       features: [
         'Tout Pro +',
         '1500 leads par mois',
