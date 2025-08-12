@@ -1,4 +1,10 @@
 {
-  "/not-found": "app/not-found.js",
-  "/page": "app/page.js"
+  "/_not-found": "app/_not-found.js",
+  "/api/auth/register/route": "app/api/auth/register/route.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/leads/route": "app/api/leads/route.js",
+  "/api/payments/create-checkout/route": "app/api/payments/create-checkout/route.js",
+  "/api/payments/webhook/route": "app/api/payments/webhook/route.js",
+  "/page": "app/page.js",
+  "/payment-success/page": "app/payment-success/page.js"
 }
