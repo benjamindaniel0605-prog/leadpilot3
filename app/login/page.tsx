@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -13,6 +14,15 @@ export default function LoginPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const confirmed = searchParams.get('confirmed')
+    if (confirmed === 'true') {
+      setSuccess('✅ Votre email a été confirmé avec succès ! Vous pouvez maintenant vous connecter.')
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,12 +86,17 @@ export default function LoginPage() {
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
+                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+           {success && (
+             <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md">
+               {success}
+             </div>
+           )}
+           {error && (
+             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
+               {error}
+             </div>
+           )}
           
           <div className="space-y-4">
             {!isLogin && (
