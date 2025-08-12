@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -10,9 +11,11 @@ export default function HomePage() {
         <p className="text-xl text-gray-600 mb-8">
           Générez plus de leads qualifiés avec l'IA
         </p>
-        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
-          Commencer gratuitement
-        </button>
+        <Link href="/login">
+          <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+            Commencer gratuitement
+          </button>
+        </Link>
       </div>
     </div>
   )
