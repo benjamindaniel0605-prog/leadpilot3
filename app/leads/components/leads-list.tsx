@@ -19,8 +19,7 @@ interface Lead {
   company: string
   sector: string
   position: string
-  location?: string
-  score: number
+  aiScore: number
   status: string
   createdAt: string
 }
@@ -90,7 +89,7 @@ export default function LeadsList({ onLeadsUpdated }: LeadsListProps) {
     // Filtre par score
     if (filters.score) {
       const [minScore] = filters.score.split('-').map(Number)
-      filtered = filtered.filter(lead => lead.score >= minScore)
+      filtered = filtered.filter(lead => lead.aiScore >= minScore)
     }
 
     // Filtre par statut
@@ -338,11 +337,11 @@ export default function LeadsList({ onLeadsUpdated }: LeadsListProps) {
                       <div className="flex items-center space-x-2">
                         <div className="w-16 bg-gray-700 rounded-full h-2">
                           <div 
-                            className={`h-2 rounded-full transition-all duration-300 ${getScoreColor(lead.score)}`}
-                            style={{ width: `${lead.score}%` }}
+                            className={`h-2 rounded-full transition-all duration-300 ${getScoreColor(lead.aiScore)}`}
+                            style={{ width: `${lead.aiScore}%` }}
                           ></div>
                         </div>
-                        <span className="text-sm text-white">{lead.score}%</span>
+                        <span className="text-sm text-white">{lead.aiScore}%</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

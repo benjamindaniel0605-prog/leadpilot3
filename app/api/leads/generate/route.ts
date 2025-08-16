@@ -37,8 +37,7 @@ interface GeneratedLead {
   position: string
   company: string
   sector: string
-  location: string
-  score: number
+  aiScore: number
 }
 
 export async function POST(request: NextRequest) {
@@ -117,11 +116,10 @@ export async function POST(request: NextRequest) {
         company: lead.company,
         sector: lead.sector,
         position: lead.position,
-        location: lead.location,
-        score: lead.score,
+        aiScore: lead.aiScore,
         status: 'new',
         source: 'ai_generated',
-        notes: `Lead généré automatiquement par IA - Score: ${lead.score}%`
+        notes: `Lead généré automatiquement par IA - Score: ${lead.aiScore}%`
       }).returning()
       
       savedLeads.push(savedLead)
@@ -220,8 +218,7 @@ async function qualifyLeadsWithAI(
           "position": "string",
           "company": "string",
           "sector": "string",
-          "location": "string",
-          "score": number
+          "aiScore": number
         }
       ]
     }
@@ -277,8 +274,7 @@ async function qualifyLeadsWithAI(
       position: p.title,
       company: p.company_name,
       sector: p.company_industry,
-      location: `${p.city}, ${p.country}`,
-      score: 75 // Score par défaut
+      aiScore: 75 // Score par défaut
     }))
   }
 }
