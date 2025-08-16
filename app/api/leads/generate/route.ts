@@ -153,8 +153,12 @@ async function searchProspectsWithApollo(
       page: 1,
       per_page: Math.min(numberOfLeads * 3, 100), // Récupérer plus pour avoir du choix
       q_organization_domains: "",
-      q_organization_locations: [location],
-      q_organization_employee_ranges: [companySize]
+      q_organization_locations: [location]
+    }
+
+    // Ajouter la taille d'entreprise seulement si elle est spécifiée
+    if (companySize && companySize.trim()) {
+      searchQuery.q_organization_employee_ranges = [companySize]
     }
 
     // Ajouter le secteur seulement s'il est spécifié
@@ -195,6 +199,35 @@ async function searchProspectsWithApollo(
     
     if (!data.people || data.people.length === 0) {
       console.log('Aucun prospect trouvé avec ces critères Apollo')
+      
+      // Essayer une recherche plus large sans certains critères
+      console.log('Tentative de recherche plus large...')
+      const fallbackQuery = {
+        api_key: APOLLO_API_KEY,
+        page: 1,
+        per_page: Math.min(numberOfLeads * 3, 100),
+        q_organization_locations: [location]
+      }
+      
+      const fallbackResponse = await fetch('https://api.apollo.io/v1/people/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        body: JSON.stringify(fallbackQuery)
+      })
+      
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json()
+        console.log('Réponse fallback Apollo:', JSON.stringify(fallbackData, null, 2))
+        
+        if (fallbackData.people && fallbackData.people.length > 0) {
+          console.log(`Fallback réussi: ${fallbackData.people.length} prospects trouvés`)
+          return fallbackData.people
+        }
+      }
+      
       return []
     }
 
