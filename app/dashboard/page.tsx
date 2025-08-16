@@ -12,7 +12,7 @@ import {
   LinkIcon,
   CogIcon,
   BellIcon,
-  CrownIcon,
+  StarIcon,
   PlusIcon,
   DocumentTextIcon,
   ChartPieIcon,
@@ -250,7 +250,7 @@ export default function DashboardPage() {
                 href="/pricing"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors"
               >
-                <CrownIcon className="w-4 h-4" />
+                <StarIcon className="w-4 h-4" />
                 <span>Upgrade</span>
               </Link>
             )}
@@ -297,7 +297,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center">
-                    <CrownIcon className="w-8 h-8 text-white" />
+                    <StarIcon className="w-8 h-8 text-white" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-white mb-2">

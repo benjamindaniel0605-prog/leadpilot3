@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { ArrowLeftIcon, TrendingUpIcon, TrendingDownIcon, EyeIcon, EnvelopeIcon, UserGroupIcon, CalendarIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, ArrowUpIcon, ArrowDownIcon, EyeIcon, EnvelopeIcon, UserGroupIcon, CalendarIcon } from '@heroicons/react/24/outline'
 
 export default function StatisticsPage() {
   const stats = [
@@ -80,8 +80,8 @@ export default function StatisticsPage() {
                     stat.changeType === 'increase' ? 'text-green-400' :
                     stat.changeType === 'decrease' ? 'text-red-400' : 'text-gray-400'
                   }`}>
-                    {stat.changeType === 'increase' && <TrendingUpIcon className="w-4 h-4" />}
-                    {stat.changeType === 'decrease' && <TrendingDownIcon className="w-4 h-4" />}
+                    {stat.changeType === 'increase' && <ArrowUpIcon className="w-4 h-4" />}
+                    {stat.changeType === 'decrease' && <ArrowDownIcon className="w-4 h-4" />}
                     <span>{stat.change} vs mois dernier</span>
                   </div>
                 </div>
