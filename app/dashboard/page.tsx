@@ -35,6 +35,7 @@ interface DashboardStats {
   emailsSent: number
   openRate: number
   appointmentsBooked: number
+  leadsVariation: number
 }
 
 interface RecentActivity {
@@ -52,7 +53,8 @@ export default function DashboardPage() {
     leadsGenerated: 0,
     emailsSent: 0,
     openRate: 0,
-    appointmentsBooked: 0
+    appointmentsBooked: 0,
+    leadsVariation: 0
   })
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
@@ -73,7 +75,8 @@ export default function DashboardPage() {
             leadsGenerated: quotasData.usage.leads,
             emailsSent: 0, // À implémenter plus tard
             openRate: 0, // À implémenter plus tard
-            appointmentsBooked: 0 // À implémenter plus tard
+            appointmentsBooked: 0, // À implémenter plus tard
+            leadsVariation: quotasData.variations?.leads || 0
           })
           
           // Mettre à jour l'utilisateur avec les vraies données
@@ -125,7 +128,8 @@ export default function DashboardPage() {
           leadsGenerated: 0,
           emailsSent: 0,
           openRate: 0,
-          appointmentsBooked: 0
+          appointmentsBooked: 0,
+          leadsVariation: 0
         })
         
         setRecentActivity([])
@@ -391,9 +395,22 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-bold text-white">{stats.leadsGenerated}</div>
-                  <div className="flex items-center space-x-1 text-green-400 text-sm">
-                    <ArrowUpIcon className="w-4 h-4" />
-                    <span>+60% vs mois dernier</span>
+                  <div className="flex items-center space-x-1 text-sm">
+                    {stats.leadsVariation > 0 ? (
+                      <div className="text-green-400 flex items-center space-x-1">
+                        <ArrowUpIcon className="w-4 h-4" />
+                        <span>+{stats.leadsVariation}% vs mois dernier</span>
+                      </div>
+                    ) : stats.leadsVariation < 0 ? (
+                      <div className="text-red-400 flex items-center space-x-1">
+                        <ArrowDownIcon className="w-4 h-4" />
+                        <span>{stats.leadsVariation}% vs mois dernier</span>
+                      </div>
+                    ) : (
+                      <div className="text-gray-400">
+                        <span>0% vs mois dernier</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
