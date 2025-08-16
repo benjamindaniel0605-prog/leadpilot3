@@ -233,18 +233,41 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-300">Plan {user?.plan === 'free' ? 'Free' : user?.plan === 'starter' ? 'Starter' : user?.plan === 'pro' ? 'Pro' : 'Growth'}</span>
             </div>
-            <div className="w-full bg-gray-600 rounded-full h-2 mb-2">
-              <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${planProgress.percentage}%` }}
-              ></div>
+            
+            {/* Leads Progress */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-400">Leads</span>
+                <span className="text-xs text-gray-400">{user?.leadsUsed || 0}/{user?.plan === 'free' ? 5 : user?.plan === 'starter' ? 100 : user?.plan === 'pro' ? 400 : 1500}</span>
+              </div>
+              <div className="w-full bg-gray-600 rounded-full h-2 mb-1">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, ((user?.leadsUsed || 0) / (user?.plan === 'free' ? 5 : user?.plan === 'starter' ? 100 : user?.plan === 'pro' ? 400 : 1500)) * 100)}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-400">
+                {user?.leadsUsed || 0} leads utilisés ce mois
+              </div>
             </div>
-            <div className="text-xs text-gray-400">
-              {planProgress.used} leads utilisés ce mois
+            
+            {/* Variations IA Progress */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-400">Variations IA</span>
+                <span className="text-xs text-gray-400">{user?.aiVariationsUsed || 0}/{user?.plan === 'free' ? 5 : user?.plan === 'starter' ? 100 : user?.plan === 'pro' ? 300 : 1000}</span>
+              </div>
+              <div className="w-full bg-gray-600 rounded-full h-2 mb-1">
+                <div 
+                  className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, ((user?.aiVariationsUsed || 0) / (user?.plan === 'free' ? 5 : user?.plan === 'starter' ? 100 : user?.plan === 'pro' ? 300 : 1000)) * 100)}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-400">
+                {user?.aiVariationsUsed || 0} variations utilisées ce mois
+              </div>
             </div>
-            <div className="text-xs text-gray-400 mb-3">
-              {planProgress.total} leads disponibles
-            </div>
+            
             {nextPlan && (
               <Link 
                 href="/pricing"

@@ -13,7 +13,7 @@ interface GenerateLeadsRequest {
   companySize: string
   location: string
   targetPositions?: string
-  specialization?: string
+  precision?: string
   numberOfLeads: number
 }
 
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: GenerateLeadsRequest = await request.json()
-    const { sector, companySize, location, targetPositions, specialization, numberOfLeads } = body
+    const { sector, companySize, location, targetPositions, precision, numberOfLeads } = body
 
     if (!APOLLO_API_KEY || !OPENAI_API_KEY) {
       return NextResponse.json(
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       apolloResults, 
       sector, 
       numberOfLeads,
-      specialization
+      precision
     )
 
     // 3. Sauvegarder les leads dans la base de données
@@ -185,7 +185,7 @@ async function qualifyLeadsWithAI(
   prospects: ApolloPerson[],
   targetSector: string,
   numberOfLeads: number,
-  specialization?: string
+  precision?: string
 ): Promise<GeneratedLead[]> {
   try {
     // Préparer le prompt pour OpenAI
@@ -194,7 +194,7 @@ async function qualifyLeadsWithAI(
 
     Critères de qualification:
     - Secteur cible: ${targetSector}
-    - Spécialisation: ${specialization || 'Non spécifiée'}
+    - Spécialisation: ${precision || 'Non spécifiée'}
     - Pertinence du poste pour le secteur
     - Qualité de l'entreprise
     - Potentiel commercial

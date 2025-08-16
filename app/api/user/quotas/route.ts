@@ -78,8 +78,8 @@ export async function GET(request: NextRequest) {
       )
       .then(result => result.length)
 
-    // Calculer les variations utilisées (si applicable)
-    const variationsUsed = 0 // À implémenter selon vos besoins
+    // Calculer les variations utilisées (pour l'instant à 0, à implémenter plus tard)
+    const variationsUsed = 0
 
     const quotas = {
       plan: userPlan,
