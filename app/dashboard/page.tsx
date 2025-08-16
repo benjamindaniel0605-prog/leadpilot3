@@ -132,15 +132,15 @@ export default function DashboardPage() {
   const getNextPlanInfo = (currentPlan: string) => {
     switch (currentPlan) {
       case 'free':
-        return { name: 'Starter', price: '49€', buttonText: 'Passer Starter' }
+        return { name: 'Starter', price: '49€', buttonText: 'Passer Starter', hasTrial: false }
       case 'starter':
-        return { name: 'Pro', price: '99€', buttonText: 'Passer Pro' }
+        return { name: 'Pro', price: '99€', buttonText: 'Passer Pro', hasTrial: true }
       case 'pro':
-        return { name: 'Growth', price: '299€', buttonText: 'Passer Growth' }
+        return { name: 'Growth', price: '299€', buttonText: 'Passer Growth', hasTrial: false }
       case 'growth':
         return null
       default:
-        return { name: 'Starter', price: '49€', buttonText: 'Passer Starter' }
+        return { name: 'Starter', price: '49€', buttonText: 'Passer Starter', hasTrial: false }
     }
   }
 
@@ -309,7 +309,7 @@ export default function DashboardPage() {
                     <div className="flex items-center space-x-2 text-sm">
                       <span className="text-yellow-400">⭐</span>
                       <span className="text-gray-300">
-                        Essai gratuit 14 jours sans engagement (Plan {nextPlan.name})
+                        {nextPlan.hasTrial ? `Essai gratuit 14 jours sans engagement (Plan ${nextPlan.name})` : `Plan ${nextPlan.name}`}
                       </span>
                     </div>
                   </div>
