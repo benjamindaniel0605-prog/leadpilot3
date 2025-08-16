@@ -66,9 +66,14 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
     'Directeur des Ventes', 'Responsable Marketing', 'Chef de Projet'
   ]
 
-  // Charger les quotas au montage
+  // Récupérer les quotas utilisateur
   useEffect(() => {
     fetchQuotas()
+    
+    // Rafraîchir les quotas toutes les 30 secondes
+    const interval = setInterval(fetchQuotas, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   const fetchQuotas = async () => {

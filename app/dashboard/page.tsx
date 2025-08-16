@@ -57,61 +57,89 @@ export default function DashboardPage() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Simuler la récupération des données utilisateur et stats
+  // Récupérer les vraies données utilisateur et stats
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Simuler un appel API
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        setLoading(true)
         
-        // Données simulées pour la démo
-        const mockUser: User = {
+        // Récupérer les quotas utilisateur
+        const quotasResponse = await fetch('/api/user/quotas')
+        if (quotasResponse.ok) {
+          const quotasData = await quotasResponse.json()
+          
+          // Mettre à jour les stats avec les vraies données
+          setStats({
+            leadsGenerated: quotasData.usage.leads,
+            emailsSent: 0, // À implémenter plus tard
+            openRate: 0, // À implémenter plus tard
+            appointmentsBooked: 0 // À implémenter plus tard
+          })
+          
+          // Mettre à jour l'utilisateur avec les vraies données
+          setUser({
+            id: '1', // À récupérer depuis l'auth
+            email: 'benjamin.daniel@example.com', // À récupérer depuis l'auth
+            firstName: 'Benjamin', // À récupérer depuis l'auth
+            lastName: 'Daniel', // À récupérer depuis l'auth
+            plan: quotasData.plan || 'free',
+            leadsUsed: quotasData.usage.leads,
+            aiVariationsUsed: quotasData.usage.variations
+          })
+        }
+        
+        // Récupérer l'activité récente depuis l'API leads
+        const leadsResponse = await fetch('/api/leads')
+        if (leadsResponse.ok) {
+          const leadsData = await leadsResponse.json()
+          
+          // Créer l'activité récente basée sur les vrais leads
+          const recentLeads = leadsData.leads?.slice(0, 2) || []
+          const activity: RecentActivity[] = recentLeads.map((lead: any, index: number) => ({
+            id: lead.id || `lead-${index}`,
+            type: 'lead_added',
+            message: `Lead ajouté: ${lead.firstName} ${lead.lastName}`,
+            company: lead.company || 'N/A',
+            score: lead.aiScore || 0,
+            timestamp: new Date(lead.createdAt || Date.now())
+          }))
+          
+          setRecentActivity(activity)
+        }
+        
+      } catch (error) {
+        console.error('Erreur lors du chargement du dashboard:', error)
+        
+        // Fallback avec des données par défaut
+        setUser({
           id: '1',
           email: 'benjamin.daniel@example.com',
           firstName: 'Benjamin',
           lastName: 'Daniel',
           plan: 'free',
-          leadsUsed: 3,
-          aiVariationsUsed: 2
-        }
+          leadsUsed: 0,
+          aiVariationsUsed: 0
+        })
         
-        const mockStats: DashboardStats = {
-          leadsGenerated: 3,
+        setStats({
+          leadsGenerated: 0,
           emailsSent: 0,
           openRate: 0,
           appointmentsBooked: 0
-        }
+        })
         
-        const mockActivity: RecentActivity[] = [
-          {
-            id: '1',
-            type: 'lead_added',
-            message: 'Lead ajouté: Julie Richard',
-            company: 'EcommercePlus',
-            score: 85,
-            timestamp: new Date()
-          },
-          {
-            id: '2',
-            type: 'lead_added',
-            message: 'Lead ajouté: Nicolas Garcia',
-            company: 'FinanceSecure',
-            score: 92,
-            timestamp: new Date(Date.now() - 86400000)
-          }
-        ]
-        
-        setUser(mockUser)
-        setStats(mockStats)
-        setRecentActivity(mockActivity)
-      } catch (error) {
-        console.error('Erreur lors du chargement du dashboard:', error)
+        setRecentActivity([])
       } finally {
         setLoading(false)
       }
     }
 
     fetchDashboardData()
+    
+    // Rafraîchir les données toutes les 30 secondes
+    const interval = setInterval(fetchDashboardData, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   const getPlanLimits = (plan: string) => {
