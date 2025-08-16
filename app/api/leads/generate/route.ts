@@ -147,17 +147,33 @@ async function searchProspectsWithApollo(
   targetPositions?: string
 ): Promise<ApolloPerson[]> {
   try {
-    // Construire la requête Apollo
-    const searchQuery = {
+    // Construire la requête Apollo avec des critères moins restrictifs
+    const searchQuery: any = {
       api_key: APOLLO_API_KEY,
       page: 1,
-      per_page: Math.min(numberOfLeads * 2, 50), // Récupérer plus pour avoir du choix
+      per_page: Math.min(numberOfLeads * 3, 100), // Récupérer plus pour avoir du choix
       q_organization_domains: "",
       q_organization_locations: [location],
-      q_organization_industries: [sector],
-      q_organization_employee_ranges: [companySize],
-      q_titles: targetPositions ? [targetPositions] : undefined
+      q_organization_employee_ranges: [companySize]
     }
+
+    // Ajouter le secteur seulement s'il est spécifié
+    if (sector && sector.trim()) {
+      const sectors = sector.split(',').map(s => s.trim()).filter(s => s)
+      if (sectors.length > 0) {
+        searchQuery.q_organization_industries = sectors
+      }
+    }
+
+    // Ajouter les postes ciblés seulement s'ils sont spécifiés
+    if (targetPositions && targetPositions.trim()) {
+      const positions = targetPositions.split(',').map(p => p.trim()).filter(p => p)
+      if (positions.length > 0) {
+        searchQuery.q_titles = positions
+      }
+    }
+
+    console.log('Requête Apollo:', JSON.stringify(searchQuery, null, 2))
 
     const response = await fetch('https://api.apollo.io/v1/people/search', {
       method: 'POST',
@@ -169,11 +185,20 @@ async function searchProspectsWithApollo(
     })
 
     if (!response.ok) {
-      throw new Error(`Erreur Apollo: ${response.status}`)
+      const errorText = await response.text()
+      console.error('Erreur Apollo:', response.status, errorText)
+      throw new Error(`Erreur Apollo: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    return data.people || []
+    console.log('Réponse Apollo:', JSON.stringify(data, null, 2))
+    
+    if (!data.people || data.people.length === 0) {
+      console.log('Aucun prospect trouvé avec ces critères Apollo')
+      return []
+    }
+
+    return data.people
 
   } catch (error) {
     console.error('Erreur recherche Apollo:', error)

@@ -8,7 +8,8 @@ import {
   BriefcaseIcon,
   SparklesIcon,
   XMarkIcon,
-  EyeIcon
+  EyeIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline'
 import { toast } from 'sonner'
 
@@ -295,13 +296,32 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
                   onChange={(e) => handleInputChange('sector', e.target.value)}
                   placeholder="Tapez ou sélectionnez un secteur"
                   className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  list="sectors"
                 />
-                <datalist id="sectors">
-                  {sectors.map(sector => (
-                    <option key={sector} value={sector} />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                {/* Menu déroulant des secteurs populaires */}
+                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {['Technologie', 'Finance', 'Santé', 'Éducation', 'E-commerce', 'Marketing', 'Consulting', 'Manufacturing', 'Real Estate', 'Transport'].map((sector) => (
+                    <button
+                      key={sector}
+                      type="button"
+                      onClick={() => {
+                        const currentSectors = formData.sector.split(',').map(s => s.trim()).filter(s => s)
+                        if (!currentSectors.includes(sector)) {
+                          const newSectors = currentSectors.length > 0 ? [...currentSectors, sector] : [sector]
+                          handleInputChange('sector', newSectors.join(', '))
+                        }
+                      }}
+                      className="w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
+                    >
+                      {sector}
+                    </button>
                   ))}
-                </datalist>
+                </div>
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Séparez plusieurs secteurs par des virgules
               </div>
             </div>
 
@@ -393,15 +413,34 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
                   type="text"
                   value={formData.targetPositions}
                   onChange={(e) => handleInputChange('targetPositions', e.target.value)}
-                  placeholder="CEO, Directeur Marketing, CTO..."
+                  placeholder="Tapez ou sélectionnez des postes"
                   className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  list="positions"
                 />
-                <datalist id="positions">
-                  {positions.map(position => (
-                    <option key={position} value={position} />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <ChevronDownIcon className="w-5 h-5 text-gray-400" />
+                </div>
+                {/* Menu déroulant des postes populaires */}
+                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {['CEO', 'Directeur Marketing', 'CTO', 'Directeur Commercial', 'Directeur Financier', 'Directeur RH', 'Directeur Opérationnel', 'Manager', 'Chef de Projet', 'Consultant'].map((position) => (
+                    <button
+                      key={position}
+                      type="button"
+                      onClick={() => {
+                        const currentPositions = formData.targetPositions.split(',').map(p => p.trim()).filter(p => p)
+                        if (!currentPositions.includes(position)) {
+                          const newPositions = currentPositions.length > 0 ? [...currentPositions, position] : [position]
+                          handleInputChange('targetPositions', newPositions.join(', '))
+                        }
+                      }}
+                      className="w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
+                    >
+                      {position}
+                    </button>
                   ))}
-                </datalist>
+                </div>
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                Séparez plusieurs postes par des virgules
               </div>
             </div>
 
@@ -416,12 +455,9 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
                   type="text"
                   value={formData.precision}
                   onChange={(e) => handleInputChange('precision', e.target.value)}
-                  placeholder="montres, crypto, IA, marketing digital..."
+                  placeholder=""
                   className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <div className="text-xs text-gray-400 mt-1">
-                  Filtrez par secteur ou produit spécifique
-                </div>
               </div>
             </div>
           </div>
