@@ -41,6 +41,7 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
   const [isExpanded, setIsExpanded] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
   const [quotas, setQuotas] = useState<UserQuotas | null>(null)
+  const [openDropdown, setOpenDropdown] = useState<'sector' | 'positions' | null>(null)
   
   // Champs de génération
   const [formData, setFormData] = useState({
@@ -76,6 +77,18 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
     
     return () => clearInterval(interval)
   }, [])
+
+  // Fermer les menus déroulants quand on clique ailleurs
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdown) {
+        setOpenDropdown(null)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [openDropdown])
 
   const fetchQuotas = async () => {
     try {
@@ -297,28 +310,35 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
                   placeholder="Tapez ou sélectionnez un secteur"
                   className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown(openDropdown === 'sector' ? null : 'sector')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
                   <ChevronDownIcon className="w-5 h-5 text-gray-400" />
-                </div>
+                </button>
                 {/* Menu déroulant des secteurs populaires */}
-                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                  {['Technologie', 'Finance', 'Santé', 'Éducation', 'E-commerce', 'Marketing', 'Consulting', 'Manufacturing', 'Real Estate', 'Transport'].map((sector) => (
-                    <button
-                      key={sector}
-                      type="button"
-                      onClick={() => {
-                        const currentSectors = formData.sector.split(',').map(s => s.trim()).filter(s => s)
-                        if (!currentSectors.includes(sector)) {
-                          const newSectors = currentSectors.length > 0 ? [...currentSectors, sector] : [sector]
-                          handleInputChange('sector', newSectors.join(', '))
-                        }
-                      }}
-                      className="w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
-                    >
-                      {sector}
-                    </button>
-                  ))}
-                </div>
+                {openDropdown === 'sector' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                    {['Technologie', 'Finance', 'Santé', 'Éducation', 'E-commerce', 'Marketing', 'Consulting', 'Manufacturing', 'Real Estate', 'Transport'].map((sector) => (
+                      <button
+                        key={sector}
+                        type="button"
+                        onClick={() => {
+                          const currentSectors = formData.sector.split(',').map(s => s.trim()).filter(s => s)
+                          if (!currentSectors.includes(sector)) {
+                            const newSectors = currentSectors.length > 0 ? [...currentSectors, sector] : [sector]
+                            handleInputChange('sector', newSectors.join(', '))
+                          }
+                          setOpenDropdown(null)
+                        }}
+                        className="w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
+                      >
+                        {sector}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="text-xs text-gray-400 mt-1">
                 Séparez plusieurs secteurs par des virgules
@@ -416,28 +436,35 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
                   placeholder="Tapez ou sélectionnez des postes"
                   className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <button
+                  type="button"
+                  onClick={() => setOpenDropdown(openDropdown === 'positions' ? null : 'positions')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
                   <ChevronDownIcon className="w-5 h-5 text-gray-400" />
-                </div>
+                </button>
                 {/* Menu déroulant des postes populaires */}
-                <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                  {['CEO', 'Directeur Marketing', 'CTO', 'Directeur Commercial', 'Directeur Financier', 'Directeur RH', 'Directeur Opérationnel', 'Manager', 'Chef de Projet', 'Consultant'].map((position) => (
-                    <button
-                      key={position}
-                      type="button"
-                      onClick={() => {
-                        const currentPositions = formData.targetPositions.split(',').map(p => p.trim()).filter(p => p)
-                        if (!currentPositions.includes(position)) {
-                          const newPositions = currentPositions.length > 0 ? [...currentPositions, position] : [position]
-                          handleInputChange('targetPositions', newPositions.join(', '))
-                        }
-                      }}
-                      className="w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
-                    >
-                      {position}
-                    </button>
-                  ))}
-                </div>
+                {openDropdown === 'positions' && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                    {['CEO', 'Directeur Marketing', 'CTO', 'Directeur Commercial', 'Directeur Financier', 'Directeur RH', 'Directeur Opérationnel', 'Manager', 'Chef de Projet', 'Consultant'].map((position) => (
+                      <button
+                        key={position}
+                        type="button"
+                        onClick={() => {
+                          const currentPositions = formData.targetPositions.split(',').map(p => p.trim()).filter(p => p)
+                          if (!currentPositions.includes(position)) {
+                            const newPositions = currentPositions.length > 0 ? [...currentPositions, position] : [position]
+                            handleInputChange('targetPositions', newPositions.join(', '))
+                          }
+                          setOpenDropdown(null)
+                        }}
+                        className="w-full text-left px-4 py-2 text-white hover:bg-gray-600 transition-colors"
+                      >
+                        {position}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="text-xs text-gray-400 mt-1">
                 Séparez plusieurs postes par des virgules
