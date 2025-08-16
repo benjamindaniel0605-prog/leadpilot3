@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
       sector, 
       companySize, 
       location, 
-      targetPositions, 
-      numberOfLeads
+      numberOfLeads,
+      targetPositions
     )
 
     if (!apolloResults.length) {
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
     const qualifiedLeads = await qualifyLeadsWithAI(
       apolloResults, 
       sector, 
-      specialization, 
-      numberOfLeads
+      numberOfLeads,
+      specialization
     )
 
     // 3. Sauvegarder les leads dans la base de données
@@ -143,8 +143,8 @@ async function searchProspectsWithApollo(
   sector: string,
   companySize: string,
   location: string,
-  targetPositions?: string,
-  numberOfLeads: number
+  numberOfLeads: number,
+  targetPositions?: string
 ): Promise<ApolloPerson[]> {
   try {
     // Construire la requête Apollo
@@ -184,8 +184,8 @@ async function searchProspectsWithApollo(
 async function qualifyLeadsWithAI(
   prospects: ApolloPerson[],
   targetSector: string,
-  specialization?: string,
-  numberOfLeads: number
+  numberOfLeads: number,
+  specialization?: string
 ): Promise<GeneratedLead[]> {
   try {
     // Préparer le prompt pour OpenAI
