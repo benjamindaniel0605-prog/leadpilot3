@@ -174,14 +174,14 @@ export default function TemplatesPage() {
           subject: data.variation.subject,
           content: data.variation.content
         });
-        toast.success('Variation IA générée avec succès !');
+        toast.success('Variation générée avec succès !');
       } else {
         const error = await response.json();
         toast.error(`Erreur: ${error.message || 'Impossible de générer la variation'}`);
       }
     } catch (error) {
-      console.error('Erreur génération variation IA:', error);
-      toast.error('Erreur lors de la génération de la variation IA');
+      console.error('Erreur génération variation:', error);
+      toast.error('Erreur lors de la génération de la variation');
     } finally {
       setIsGeneratingVariation(false);
     }
@@ -580,7 +580,7 @@ export default function TemplatesPage() {
                            : 'bg-blue-600 text-white hover:bg-blue-500'
                        }`}
                      >
-                       {isGeneratingVariation ? 'Génération...' : 'Variation IA'}
+                       {isGeneratingVariation ? 'Génération...' : 'Variation'}
                      </button>
                     <button className="px-3 py-1 bg-gray-600 text-gray-300 text-sm rounded-md hover:bg-gray-500">
                       Proposer RDV

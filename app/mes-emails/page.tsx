@@ -302,13 +302,13 @@ Cordialement,
                   </div>
                   
                   <div className="flex space-x-2 mb-4">
-                    <button 
-                      onClick={handleAIVariation}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 transition-colors flex items-center space-x-1"
-                    >
-                      <StarIcon className="h-3 w-3" />
-                      <span>Variation IA</span>
-                    </button>
+                                         <button 
+                       onClick={handleAIVariation}
+                       className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-500 transition-colors flex items-center space-x-1"
+                     >
+                       <StarIcon className="h-3 w-3" />
+                       <span>Variation</span>
+                     </button>
                     <button 
                       onClick={handleSuggestMeeting}
                       className="px-3 py-1 bg-gray-600 text-gray-300 text-sm rounded-md hover:bg-gray-500 transition-colors flex items-center space-x-1"

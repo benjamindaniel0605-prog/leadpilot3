@@ -84,10 +84,10 @@ Génère UNIQUEMENT le JSON suivant:
     })
 
   } catch (error) {
-    console.error('Erreur génération variation IA:', error)
+    console.error('Erreur génération variation:', error)
     return NextResponse.json(
       { 
-        message: 'Erreur lors de la génération de la variation IA',
+        message: 'Erreur lors de la génération de la variation',
         error: error instanceof Error ? error.message : 'Erreur inconnue'
       },
       { status: 500 }
