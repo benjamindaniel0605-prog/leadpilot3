@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { db } from '@/lib/database'
+import { leads } from '@/lib/schema'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const APOLLO_API_KEY = process.env.APOLLO_API_KEY
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 // Fonction pour créer des leads simulés (pour tester)
 function createSimulatedLeads(
@@ -52,8 +50,7 @@ function createSimulatedLeads(
       sector: sector || 'Technologie',
       position,
       score: Math.floor(Math.random() * 30) + 70, // Score entre 70 et 100
-      status: 'new',
-      createdAt: new Date().toISOString()
+      status: 'new'
     })
   }
   
@@ -167,21 +164,33 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Début génération leads...')
     
-    // Récupérer le token d'authentification
-    const cookieStore = await cookies()
-    const token = cookieStore.get('sb-access-token')?.value
-    
-    if (!token) {
-      console.log('❌ Pas de token trouvé')
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-    }
+    const cookieStore = cookies()
+
+    // Utiliser la même méthode d'authentification que l'API leads
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            cookieStore.set(name, value, options)
+          },
+          remove(name: string, options: any) {
+            cookieStore.set(name, '', { ...options, maxAge: 0 })
+          },
+        },
+      }
+    )
 
     // Vérifier l'utilisateur
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       console.log('❌ Erreur authentification:', authError)
-      return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 401 })
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
     console.log('✅ Utilisateur authentifié:', user.email)
@@ -190,25 +199,6 @@ export async function POST(request: NextRequest) {
     const { sector, companySize, location, numberOfLeads, targetPositions, precision } = await request.json()
     
     console.log('📋 Critères reçus:', { sector, companySize, location, numberOfLeads, targetPositions, precision })
-
-    // Vérifier les quotas utilisateur
-    const { data: quotas, error: quotasError } = await supabase
-      .from('user_quotas')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (quotasError || !quotas) {
-      console.log('❌ Erreur récupération quotas:', quotasError)
-      return NextResponse.json({ error: 'Erreur récupération quotas' }, { status: 500 })
-    }
-
-    if (quotas.leads_used >= quotas.leads_limit) {
-      console.log('❌ Quota leads dépassé')
-      return NextResponse.json({ error: 'Quota leads dépassé' }, { status: 403 })
-    }
-
-    console.log('✅ Quotas vérifiés, leads disponibles:', quotas.leads_limit - quotas.leads_used)
 
     // MODE TEST : Utiliser des données simulées au lieu d'Apollo
     console.log('🧪 MODE TEST : Génération de leads simulés...')
@@ -223,40 +213,27 @@ export async function POST(request: NextRequest) {
     
     console.log('🎭 Leads simulés créés:', simulatedLeads)
 
-    // Sauvegarder les leads en base
+    // Sauvegarder les leads en base avec Drizzle
     const leadsToSave = simulatedLeads.map(lead => ({
-      ...lead,
-      user_id: user.id,
+      userId: user.id,
+      firstName: lead.firstName,
+      lastName: lead.lastName,
+      email: lead.email,
+      company: lead.company,
+      sector: lead.sector,
+      position: lead.position,
+      score: lead.score,
+      status: lead.status,
       source: 'simulated'
     }))
 
-    const { data: savedLeads, error: saveError } = await supabase
-      .from('leads')
-      .insert(leadsToSave)
-      .select()
-
-    if (saveError) {
-      console.log('❌ Erreur sauvegarde leads:', saveError)
-      return NextResponse.json({ error: 'Erreur sauvegarde leads' }, { status: 500 })
+    const savedLeads = []
+    for (const lead of leadsToSave) {
+      const [newLead] = await db.insert(leads).values(lead).returning()
+      savedLeads.push(newLead)
     }
 
     console.log('✅ Leads sauvegardés en base:', savedLeads)
-
-    // Mettre à jour les quotas
-    const { error: updateError } = await supabase
-      .from('user_quotas')
-      .update({ 
-        leads_used: quotas.leads_used + numberOfLeads,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
-
-    if (updateError) {
-      console.log('⚠️ Erreur mise à jour quotas:', updateError)
-      // On continue quand même
-    }
-
-    console.log('✅ Quotas mis à jour')
 
     // Retourner les leads générés
     return NextResponse.json({
