@@ -1,157 +1,81 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { db } from '@/lib/database'
-import { leads } from '@/lib/schema'
+import { createClient } from '@supabase/supabase-js'
 
-// Configuration Apollo
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const APOLLO_API_KEY = process.env.APOLLO_API_KEY
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
-interface GenerateLeadsRequest {
-  sector: string
-  companySize: string
-  location: string
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+// Fonction pour créer des leads simulés (pour tester)
+function createSimulatedLeads(
+  sector: string,
+  companySize: string,
+  location: string,
+  numberOfLeads: number,
   targetPositions?: string
-  precision?: string
-  numberOfLeads: number
-}
+) {
+  const companies = [
+    'TechCorp', 'InnovateLab', 'DigitalFlow', 'FutureTech', 'SmartSolutions',
+    'NextGen', 'CloudWorks', 'DataDrive', 'AI Ventures', 'TechHub'
+  ]
+  
+  const firstNames = [
+    'Alexandre', 'Marie', 'Thomas', 'Sophie', 'Lucas', 'Emma', 'Hugo', 'Léa',
+    'Jules', 'Chloé', 'Antoine', 'Camille', 'Maxime', 'Sarah', 'Nicolas'
+  ]
+  
+  const lastNames = [
+    'Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit',
+    'Durand', 'Leroy', 'Moreau', 'Simon', 'Laurent', 'Lefebvre', 'Michel'
+  ]
+  
+  const positions = [
+    'CEO', 'Directeur Commercial', 'Directeur Marketing', 'CTO', 'CFO',
+    'Directeur des Ventes', 'Responsable Marketing', 'Chef de Projet'
+  ]
 
-interface ApolloPerson {
-  id: string
-  first_name: string
-  last_name: string
-  email: string
-  title: string
-  company_name: string
-  company_industry: string
-  company_size: string
-  city: string
-  country: string
-}
-
-interface GeneratedLead {
-  firstName: string
-  lastName: string
-  email: string
-  position: string
-  company: string
-  sector: string
-  aiScore: number
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const cookieStore = cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-          set(name: string, value: string, options: any) {
-            cookieStore.set(name, value, options)
-          },
-          remove(name: string, options: any) {
-            cookieStore.set(name, '', { ...options, maxAge: 0 })
-          },
-        },
-      }
-    )
-
-    // Vérifier l'authentification
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const leads = []
+  
+  for (let i = 0; i < numberOfLeads; i++) {
+    const company = companies[Math.floor(Math.random() * companies.length)]
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
+    const position = positions[Math.floor(Math.random() * positions.length)]
     
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Non authentifié' },
-        { status: 401 }
-      )
-    }
-
-    const body: GenerateLeadsRequest = await request.json()
-    const { sector, companySize, location, targetPositions, precision, numberOfLeads } = body
-
-    if (!APOLLO_API_KEY || !OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Configuration API manquante' },
-        { status: 500 }
-      )
-    }
-
-    // 1. Rechercher des prospects via Apollo
-    const apolloResults = await searchProspectsWithApollo(
-      sector, 
-      companySize, 
-      location, 
-      numberOfLeads,
-      targetPositions
-    )
-
-    if (!apolloResults.length) {
-      return NextResponse.json(
-        { error: 'Aucun prospect trouvé avec ces critères' },
-        { status: 404 }
-      )
-    }
-
-    // 2. Qualifier les leads avec OpenAI
-    const qualifiedLeads = await qualifyLeadsWithAI(
-      apolloResults, 
-      sector, 
-      numberOfLeads,
-      precision
-    )
-
-    // 3. Sauvegarder les leads dans la base de données
-    const savedLeads = []
-    for (const lead of qualifiedLeads) {
-      const [savedLead] = await db.insert(leads).values({
-        userId: user.id,
-        firstName: lead.firstName,
-        lastName: lead.lastName,
-        email: lead.email,
-        company: lead.company,
-        sector: lead.sector,
-        position: lead.position,
-        aiScore: lead.aiScore,
-        status: 'new',
-        source: 'ai_generated',
-        notes: `Lead généré automatiquement par IA - Score: ${lead.aiScore}%`
-      }).returning()
-      
-      savedLeads.push(savedLead)
-    }
-
-    return NextResponse.json({ 
-      leads: savedLeads,
-      message: `${savedLeads.length} leads générés avec succès`
+    leads.push({
+      firstName,
+      lastName,
+      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${company.toLowerCase()}.com`,
+      company,
+      sector: sector || 'Technologie',
+      position,
+      score: Math.floor(Math.random() * 30) + 70, // Score entre 70 et 100
+      status: 'new',
+      createdAt: new Date().toISOString()
     })
-
-  } catch (error) {
-    console.error('Erreur génération leads:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la génération des leads' },
-      { status: 500 }
-    )
   }
+  
+  return leads
 }
 
+// Fonction Apollo (gardée pour plus tard)
 async function searchProspectsWithApollo(
   sector: string,
   companySize: string,
   location: string,
   numberOfLeads: number,
   targetPositions?: string
-): Promise<ApolloPerson[]> {
+): Promise<any[]> {
   try {
+    console.log('🔍 Tentative de recherche Apollo...')
+    
     // Construire la requête Apollo avec des critères moins restrictifs
     const searchQuery: any = {
       api_key: APOLLO_API_KEY,
       page: 1,
-      per_page: Math.min(numberOfLeads * 3, 100), // Récupérer plus pour avoir du choix
+      per_page: Math.min(numberOfLeads * 3, 100),
       q_organization_domains: "",
       q_organization_locations: [location]
     }
@@ -177,7 +101,7 @@ async function searchProspectsWithApollo(
       }
     }
 
-    console.log('Requête Apollo:', JSON.stringify(searchQuery, null, 2))
+    console.log('📤 Requête Apollo:', JSON.stringify(searchQuery, null, 2))
 
     const response = await fetch('https://api.apollo.io/v1/people/search', {
       method: 'POST',
@@ -190,18 +114,18 @@ async function searchProspectsWithApollo(
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Erreur Apollo:', response.status, errorText)
+      console.error('❌ Erreur Apollo:', response.status, errorText)
       throw new Error(`Erreur Apollo: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    console.log('Réponse Apollo:', JSON.stringify(data, null, 2))
+    console.log('📥 Réponse Apollo:', JSON.stringify(data, null, 2))
     
     if (!data.people || data.people.length === 0) {
-      console.log('Aucun prospect trouvé avec ces critères Apollo')
+      console.log('⚠️ Aucun prospect trouvé avec ces critères Apollo')
       
       // Essayer une recherche plus large sans certains critères
-      console.log('Tentative de recherche plus large...')
+      console.log('🔄 Tentative de recherche plus large...')
       const fallbackQuery = {
         api_key: APOLLO_API_KEY,
         page: 1,
@@ -220,10 +144,10 @@ async function searchProspectsWithApollo(
       
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json()
-        console.log('Réponse fallback Apollo:', JSON.stringify(fallbackData, null, 2))
+        console.log('📥 Réponse fallback Apollo:', JSON.stringify(fallbackData, null, 2))
         
         if (fallbackData.people && fallbackData.people.length > 0) {
-          console.log(`Fallback réussi: ${fallbackData.people.length} prospects trouvés`)
+          console.log(`✅ Fallback réussi: ${fallbackData.people.length} prospects trouvés`)
           return fallbackData.people
         }
       }
@@ -234,105 +158,118 @@ async function searchProspectsWithApollo(
     return data.people
 
   } catch (error) {
-    console.error('Erreur recherche Apollo:', error)
+    console.error('❌ Erreur recherche Apollo:', error)
     return []
   }
 }
 
-async function qualifyLeadsWithAI(
-  prospects: ApolloPerson[],
-  targetSector: string,
-  numberOfLeads: number,
-  precision?: string
-): Promise<GeneratedLead[]> {
+export async function POST(request: NextRequest) {
   try {
-    // Préparer le prompt pour OpenAI
-    const prompt = `
-    Tu es un expert en qualification de leads B2B. Analyse ces prospects et attribue un score de qualification de 0 à 100%.
-
-    Critères de qualification:
-    - Secteur cible: ${targetSector}
-    - Spécialisation: ${precision || 'Non spécifiée'}
-    - Pertinence du poste pour le secteur
-    - Qualité de l'entreprise
-    - Potentiel commercial
-
-    Prospects à analyser:
-    ${prospects.map(p => 
-      `- ${p.first_name} ${p.last_name} (${p.email})
-       Poste: ${p.title}
-       Entreprise: ${p.company_name} (${p.company_industry})
-       Taille: ${p.company_size}
-       Localisation: ${p.city}, ${p.country}`
-    ).join('\n')}
-
-    Retourne uniquement un JSON avec cette structure:
-    {
-      "leads": [
-        {
-          "firstName": "string",
-          "lastName": "string", 
-          "email": "string",
-          "position": "string",
-          "company": "string",
-          "sector": "string",
-          "aiScore": number
-        }
-      ]
+    console.log('🚀 Début génération leads...')
+    
+    // Récupérer le token d'authentification
+    const cookieStore = await cookies()
+    const token = cookieStore.get('sb-access-token')?.value
+    
+    if (!token) {
+      console.log('❌ Pas de token trouvé')
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
 
-    Sélectionne les ${numberOfLeads} meilleurs prospects et attribue un score réaliste.
-    `
+    // Vérifier l'utilisateur
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      console.log('❌ Erreur authentification:', authError)
+      return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 401 })
+    }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'Tu es un expert en qualification de leads B2B. Réponds uniquement en JSON valide.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 2000
+    console.log('✅ Utilisateur authentifié:', user.email)
+
+    // Récupérer les données de la requête
+    const { sector, companySize, location, numberOfLeads, targetPositions, precision } = await request.json()
+    
+    console.log('📋 Critères reçus:', { sector, companySize, location, numberOfLeads, targetPositions, precision })
+
+    // Vérifier les quotas utilisateur
+    const { data: quotas, error: quotasError } = await supabase
+      .from('user_quotas')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    if (quotasError || !quotas) {
+      console.log('❌ Erreur récupération quotas:', quotasError)
+      return NextResponse.json({ error: 'Erreur récupération quotas' }, { status: 500 })
+    }
+
+    if (quotas.leads_used >= quotas.leads_limit) {
+      console.log('❌ Quota leads dépassé')
+      return NextResponse.json({ error: 'Quota leads dépassé' }, { status: 403 })
+    }
+
+    console.log('✅ Quotas vérifiés, leads disponibles:', quotas.leads_limit - quotas.leads_used)
+
+    // MODE TEST : Utiliser des données simulées au lieu d'Apollo
+    console.log('🧪 MODE TEST : Génération de leads simulés...')
+    
+    const simulatedLeads = createSimulatedLeads(
+      sector, 
+      companySize, 
+      location, 
+      numberOfLeads, 
+      targetPositions
+    )
+    
+    console.log('🎭 Leads simulés créés:', simulatedLeads)
+
+    // Sauvegarder les leads en base
+    const leadsToSave = simulatedLeads.map(lead => ({
+      ...lead,
+      user_id: user.id,
+      source: 'simulated'
+    }))
+
+    const { data: savedLeads, error: saveError } = await supabase
+      .from('leads')
+      .insert(leadsToSave)
+      .select()
+
+    if (saveError) {
+      console.log('❌ Erreur sauvegarde leads:', saveError)
+      return NextResponse.json({ error: 'Erreur sauvegarde leads' }, { status: 500 })
+    }
+
+    console.log('✅ Leads sauvegardés en base:', savedLeads)
+
+    // Mettre à jour les quotas
+    const { error: updateError } = await supabase
+      .from('user_quotas')
+      .update({ 
+        leads_used: quotas.leads_used + numberOfLeads,
+        updated_at: new Date().toISOString()
       })
+      .eq('user_id', user.id)
+
+    if (updateError) {
+      console.log('⚠️ Erreur mise à jour quotas:', updateError)
+      // On continue quand même
+    }
+
+    console.log('✅ Quotas mis à jour')
+
+    // Retourner les leads générés
+    return NextResponse.json({
+      success: true,
+      leads: savedLeads,
+      message: `${numberOfLeads} lead${numberOfLeads > 1 ? 's' : ''} généré${numberOfLeads > 1 ? 's' : ''} avec succès !`
     })
 
-    if (!response.ok) {
-      throw new Error(`Erreur OpenAI: ${response.status}`)
-    }
-
-    const data = await response.json()
-    const content = data.choices[0]?.message?.content
-
-    if (!content) {
-      throw new Error('Réponse OpenAI invalide')
-    }
-
-    // Parser la réponse JSON
-    const parsed = JSON.parse(content)
-    return parsed.leads || []
-
   } catch (error) {
-    console.error('Erreur qualification OpenAI:', error)
-    // Fallback: retourner les prospects avec un score par défaut
-    return prospects.slice(0, numberOfLeads).map(p => ({
-      firstName: p.first_name,
-      lastName: p.last_name,
-      email: p.email,
-      position: p.title,
-      company: p.company_name,
-      sector: p.company_industry,
-      aiScore: 75 // Score par défaut
-    }))
+    console.error('❌ Erreur générale:', error)
+    return NextResponse.json({ 
+      error: 'Erreur interne du serveur',
+      details: error instanceof Error ? error.message : 'Erreur inconnue'
+    }, { status: 500 })
   }
 }
