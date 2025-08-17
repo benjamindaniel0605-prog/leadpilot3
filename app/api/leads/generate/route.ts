@@ -3,8 +3,32 @@ import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { db } from '@/lib/database'
 import { leads } from '@/lib/schema'
+import { 
+  normalizeSector, 
+  normalizeLocation, 
+  normalizeCompanySize, 
+  normalizePosition,
+  FRENCH_CITIES 
+} from '@/src/lib/leads/normalize'
+
+// Forcer le runtime Node.js
+export const runtime = 'nodejs'
 
 const APOLLO_API_KEY = process.env.APOLLO_API_KEY
+
+// Types pour la réponse structurée
+interface LeadGenerationResponse {
+  success: boolean
+  data: any[]
+  reason?: string
+  meta?: {
+    relaxed?: string[]
+    provider?: string
+    totalFound?: number
+    attempts?: number
+  }
+  message: string
+}
 
 // Fonction pour calculer le score IA basé sur les critères
 function calculateAIScore(
@@ -90,143 +114,155 @@ function calculateAIScore(
   return Math.min(100, Math.max(0, score))
 }
 
-// Fonction pour filtrer et trier les prospects par score
-function filterAndSortProspects(
-  prospects: any[],
-  userSector: string,
-  userCompanySize: string,
-  userLocation: string,
-  userTargetPositions: string,
-  numberOfLeads: number
-) {
-  // Calculer le score pour chaque prospect
-  const scoredProspects = prospects.map(prospect => ({
-    ...prospect,
-    aiScore: calculateAIScore(
-      prospect,
-      userSector,
-      userCompanySize,
-      userLocation,
-      userTargetPositions
-    )
-  }))
-
-  // Filtrer les prospects avec un score minimum de 60
-  const qualifiedProspects = scoredProspects.filter(prospect => prospect.aiScore >= 60)
-
-  // Trier par score décroissant
-  const sortedProspects = qualifiedProspects.sort((a, b) => b.aiScore - a.aiScore)
-
-  // Retourner le nombre demandé
-  return sortedProspects.slice(0, numberOfLeads)
-}
-
-// Fonction Apollo pour récupérer de vrais prospects
+// Fonction Apollo avec relaxation automatique
 async function searchProspectsWithApollo(
   sector: string,
   companySize: string,
   location: string,
   numberOfLeads: number,
   targetPositions?: string
-): Promise<any[]> {
-  try {
-    console.log('🔍 Recherche Apollo pour de vrais prospects...')
-    
-    // Construire la requête Apollo avec des critères moins restrictifs
-    const searchQuery: any = {
-      api_key: APOLLO_API_KEY,
-      page: 1,
-      per_page: Math.min(numberOfLeads * 5, 200), // Récupérer plus pour avoir du choix
-      q_organization_domains: "",
-      q_organization_locations: [location]
+): Promise<{ prospects: any[]; relaxed: string[]; attempts: number }> {
+  let attempts = 0
+  let relaxed: string[] = []
+  
+  // Étape A : Chercher avec tous les filtres
+  attempts++
+  console.log(`🔍 Tentative ${attempts}: Recherche avec tous les filtres`)
+  
+  let searchQuery: any = {
+    api_key: APOLLO_API_KEY,
+    page: 1,
+    per_page: Math.min(numberOfLeads * 3, 100),
+    q_organization_domains: "",
+    q_organization_locations: [location]
+  }
+
+  if (companySize && companySize.trim()) {
+    searchQuery.q_organization_employee_ranges = [companySize]
+  }
+
+  if (sector && sector.trim()) {
+    const sectors = sector.split(',').map(s => s.trim()).filter(s => s)
+    if (sectors.length > 0) {
+      searchQuery.q_organization_industries = sectors
     }
+  }
 
-    // Ajouter la taille d'entreprise seulement si elle est spécifiée
-    if (companySize && companySize.trim()) {
-      searchQuery.q_organization_employee_ranges = [companySize]
+  if (targetPositions && targetPositions.trim()) {
+    const positions = targetPositions.split(',').map(p => p.trim()).filter(p => p)
+    if (positions.length > 0) {
+      searchQuery.q_titles = positions
     }
+  }
 
-    // Ajouter le secteur seulement s'il est spécifié
-    if (sector && sector.trim()) {
-      const sectors = sector.split(',').map(s => s.trim()).filter(s => s)
-      if (sectors.length > 0) {
-        searchQuery.q_organization_industries = sectors
-      }
-    }
+  console.log('📤 Requête Apollo (étape A):', JSON.stringify(searchQuery, null, 2))
 
-    // Ajouter les postes ciblés seulement s'ils sont spécifiés
-    if (targetPositions && targetPositions.trim()) {
-      const positions = targetPositions.split(',').map(p => p.trim()).filter(p => p)
-      if (positions.length > 0) {
-        searchQuery.q_titles = positions
-      }
-    }
+  let response = await fetch('https://api.apollo.io/v1/people/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'
+    },
+    body: JSON.stringify(searchQuery)
+  })
 
-    console.log('📤 Requête Apollo:', JSON.stringify(searchQuery, null, 2))
-
-    const response = await fetch('https://api.apollo.io/v1/people/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
-      body: JSON.stringify(searchQuery)
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ Erreur Apollo:', response.status, errorText)
-      throw new Error(`Erreur Apollo: ${response.status} - ${errorText}`)
-    }
-
+  if (response.ok) {
     const data = await response.json()
-    console.log('📥 Réponse Apollo:', JSON.stringify(data, null, 2))
+    console.log(`📥 Réponse Apollo (étape A): ${data.people?.length || 0} prospects`)
     
-    if (!data.people || data.people.length === 0) {
-      console.log('⚠️ Aucun prospect trouvé avec ces critères Apollo')
+    if (data.people && data.people.length > 0) {
+      return { prospects: data.people, relaxed, attempts }
+    }
+  }
+
+  // Étape B : Retirer la taille d'entreprise
+  attempts++
+  relaxed.push('size')
+  console.log(`🔍 Tentative ${attempts}: Retrait du filtre taille d'entreprise`)
+  
+  delete searchQuery.q_organization_employee_ranges
+  
+  response = await fetch('https://api.apollo.io/v1/people/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'
+    },
+    body: JSON.stringify(searchQuery)
+  })
+
+  if (response.ok) {
+    const data = await response.json()
+    console.log(`📥 Réponse Apollo (étape B): ${data.people?.length || 0} prospects`)
+    
+    if (data.people && data.people.length > 0) {
+      return { prospects: data.people, relaxed, attempts }
+    }
+  }
+
+  // Étape C : Tester avec des villes françaises
+  const normalizedLocation = normalizeLocation(location)
+  if (normalizedLocation && normalizedLocation.country === 'FR' && !normalizedLocation.city) {
+    attempts++
+    relaxed.push('city')
+    console.log(`🔍 Tentative ${attempts}: Test avec villes françaises`)
+    
+    for (const city of FRENCH_CITIES) {
+      const cityQuery = { ...searchQuery, q_organization_locations: [`${city}, France`] }
       
-      // Essayer une recherche plus large sans certains critères
-      console.log('🔄 Tentative de recherche plus large...')
-      const fallbackQuery = {
-        api_key: APOLLO_API_KEY,
-        page: 1,
-        per_page: Math.min(numberOfLeads * 5, 200),
-        q_organization_locations: [location]
-      }
-      
-      const fallbackResponse = await fetch('https://api.apollo.io/v1/people/search', {
+      response = await fetch('https://api.apollo.io/v1/people/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache'
         },
-        body: JSON.stringify(fallbackQuery)
+        body: JSON.stringify(cityQuery)
       })
-      
-      if (fallbackResponse.ok) {
-        const fallbackData = await fallbackResponse.json()
-        console.log('📥 Réponse fallback Apollo:', JSON.stringify(fallbackData, null, 2))
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log(`📥 Réponse Apollo (${city}): ${data.people?.length || 0} prospects`)
         
-        if (fallbackData.people && fallbackData.people.length > 0) {
-          console.log(`✅ Fallback réussi: ${fallbackData.people.length} prospects trouvés`)
-          return fallbackData.people
+        if (data.people && data.people.length > 0) {
+          relaxed.push(`city=${city}`)
+          return { prospects: data.people, relaxed, attempts }
         }
       }
-      
-      return []
     }
-
-    return data.people
-
-  } catch (error) {
-    console.error('❌ Erreur recherche Apollo:', error)
-    return []
   }
+
+  // Étape D : Assouplir le secteur
+  attempts++
+  relaxed.push('sector')
+  console.log(`🔍 Tentative ${attempts}: Assouplissement du secteur`)
+  
+  delete searchQuery.q_organization_industries
+  
+  response = await fetch('https://api.apollo.io/v1/people/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'
+    },
+    body: JSON.stringify(searchQuery)
+  })
+
+  if (response.ok) {
+    const data = await response.json()
+    console.log(`📥 Réponse Apollo (étape D): ${data.people?.length || 0} prospects`)
+    
+    if (data.people && data.people.length > 0) {
+      return { prospects: data.people, relaxed, attempts }
+    }
+  }
+
+  return { prospects: [], relaxed, attempts }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<LeadGenerationResponse>> {
   try {
-    console.log('🚀 Début génération leads qualifiés...')
+    console.log('🚀 Début génération leads...')
+    console.log('🔑 Clé Apollo:', APOLLO_API_KEY ? 'Présente' : 'MANQUANTE')
     
     const cookieStore = cookies()
 
@@ -254,7 +290,12 @@ export async function POST(request: NextRequest) {
     
     if (authError || !user) {
       console.log('❌ Erreur authentification:', authError)
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      return NextResponse.json({ 
+        success: false,
+        data: [],
+        reason: 'UNAUTHORIZED',
+        message: 'Non autorisé'
+      }, { status: 401 })
     }
 
     console.log('✅ Utilisateur authentifié:', user.email)
@@ -262,74 +303,122 @@ export async function POST(request: NextRequest) {
     // Récupérer les données de la requête
     const { sector, companySize, location, numberOfLeads, targetPositions, precision } = await request.json()
     
-    console.log('📋 Critères reçus:', { sector, companySize, location, numberOfLeads, targetPositions, precision })
+    console.log('📋 Payload reçu:', JSON.stringify({
+      sector,
+      companySize,
+      location,
+      targetPositions,
+      numberOfLeads,
+      precision
+    }, null, 2))
 
     // Vérifier que la clé Apollo est configurée
     if (!APOLLO_API_KEY) {
       console.log('❌ Clé API Apollo non configurée')
       return NextResponse.json({ 
-        error: 'Service de génération de leads non disponible',
-        details: 'Clé API Apollo manquante'
+        success: false,
+        data: [],
+        reason: 'MISSING_API_KEY:APOLLO',
+        message: 'Service de génération de leads non disponible'
       }, { status: 503 })
     }
 
-    // Récupérer de vrais prospects Apollo
-    console.log('🔍 Récupération prospects Apollo...')
+    // Normaliser les inputs
+    const normalizedSector = normalizeSector(sector)
+    const normalizedLocation = normalizeLocation(location)
+    const normalizedSize = normalizeCompanySize(companySize)
+    const normalizedPositions = normalizePosition(targetPositions || '')
+
+    console.log('🔧 Inputs normalisés:', JSON.stringify({
+      sector: { original: sector, normalized: normalizedSector },
+      location: { original: location, normalized: normalizedLocation },
+      companySize: { original: companySize, normalized: normalizedSize },
+      positions: { original: targetPositions, normalized: normalizedPositions }
+    }, null, 2))
+
+    // Recherche Apollo avec relaxation automatique
+    console.log('🔍 Début recherche Apollo avec relaxation automatique...')
     
-    const apolloProspects = await searchProspectsWithApollo(
-      sector, 
+    const { prospects, relaxed, attempts } = await searchProspectsWithApollo(
+      normalizedSector, 
       companySize, 
       location, 
       numberOfLeads, 
       targetPositions
     )
 
-    if (apolloProspects.length === 0) {
-      console.log('❌ Aucun prospect trouvé avec ces critères')
+    if (prospects.length === 0) {
+      console.log('❌ Aucun prospect trouvé après toutes les tentatives')
       return NextResponse.json({ 
-        error: 'Aucun prospect trouvé avec ces critères',
-        details: 'Essayez de modifier vos critères de recherche ou contactez le support'
-      }, { status: 404 })
+        success: false,
+        data: [],
+        reason: 'NO_MATCHES_FROM_PROVIDER',
+        meta: {
+          provider: 'apollo',
+          attempts,
+          relaxed
+        },
+        message: 'Aucun prospect trouvé avec ces critères'
+      }, { status: 200 })
     }
 
-    console.log(`✅ ${apolloProspects.length} prospects Apollo trouvés`)
-    
+    console.log(`✅ ${prospects.length} prospects trouvés après ${attempts} tentatives`)
+    console.log('🎯 Filtres relâchés:', relaxed)
+
     // Filtrer et trier par score IA
-    const qualifiedProspects = filterAndSortProspects(
-      apolloProspects,
-      sector,
-      companySize,
-      location,
-      targetPositions,
-      numberOfLeads
-    )
+    const scoredProspects = prospects.map(prospect => ({
+      ...prospect,
+      aiScore: calculateAIScore(
+        prospect,
+        sector,
+        companySize,
+        location,
+        targetPositions || ''
+      )
+    }))
+
+    // Filtrer les prospects avec un score minimum de 60
+    const qualifiedProspects = scoredProspects.filter(prospect => prospect.aiScore >= 60)
     
     if (qualifiedProspects.length === 0) {
       console.log('❌ Aucun prospect qualifié après filtrage IA')
       return NextResponse.json({ 
-        error: 'Aucun prospect qualifié trouvé',
-        details: 'Vos critères sont trop restrictifs. Essayez de les élargir.'
-      }, { status: 404 })
+        success: false,
+        data: [],
+        reason: 'TOO_STRICT_FILTERS:ai_score',
+        meta: {
+          provider: 'apollo',
+          attempts,
+          relaxed,
+          totalFound: prospects.length
+        },
+        message: 'Aucun prospect qualifié trouvé'
+      }, { status: 200 })
     }
-    
-    console.log(`🎯 ${qualifiedProspects.length} prospects qualifiés après filtrage`)
-    
+
+    // Trier par score décroissant et prendre le nombre demandé
+    const finalProspects = qualifiedProspects
+      .sort((a, b) => b.aiScore - a.aiScore)
+      .slice(0, numberOfLeads)
+
+    console.log(`🎯 ${finalProspects.length} prospects qualifiés après filtrage IA`)
+
     // Convertir en format leads
-    const finalLeads = qualifiedProspects.map(prospect => ({
+    const finalLeads = finalProspects.map(prospect => ({
       firstName: prospect.first_name || prospect.firstName || 'Prénom',
       lastName: prospect.last_name || prospect.lastName || 'Nom',
       email: prospect.email || `${prospect.first_name || 'prenom'}.${prospect.last_name || 'nom'}@${prospect.organization?.name || 'company'}.com`,
       company: prospect.organization?.name || 'Entreprise',
       sector: prospect.organization?.industry || sector || 'Technologie',
       position: prospect.title || 'Poste',
-      aiScore: prospect.aiScore || 75,
+      aiScore: prospect.aiScore,
       status: 'new'
     }))
     
     console.log('🎭 Leads finaux créés:', finalLeads)
 
     // Sauvegarder les leads en base avec Drizzle
-    const leadsToSave = finalLeads.map(lead => ({
+    const leadsToSave = finalLeads.map((lead: any) => ({
       userId: user.id,
       firstName: lead.firstName,
       lastName: lead.lastName,
@@ -350,21 +439,27 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Leads sauvegardés en base:', savedLeads)
 
-    // Retourner les leads générés
+    // Retourner la réponse structurée
     return NextResponse.json({
       success: true,
-      leads: savedLeads,
-      message: `${numberOfLeads} lead${numberOfLeads > 1 ? 's' : ''} qualifié${numberOfLeads > 1 ? 's' : ''} généré${numberOfLeads > 1 ? 's' : ''} avec succès !`,
-      source: 'apollo',
-      totalFound: apolloProspects.length,
-      qualifiedCount: qualifiedProspects.length
+      data: savedLeads,
+      meta: {
+        provider: 'apollo',
+        totalFound: prospects.length,
+        qualifiedCount: qualifiedProspects.length,
+        attempts,
+        relaxed: relaxed.length > 0 ? relaxed : undefined
+      },
+      message: `${numberOfLeads} lead${numberOfLeads > 1 ? 's' : ''} généré${numberOfLeads > 1 ? 's' : ''} avec succès !`
     })
 
   } catch (error) {
     console.error('❌ Erreur générale:', error)
     return NextResponse.json({ 
-      error: 'Erreur lors de la génération de leads',
-      details: error instanceof Error ? error.message : 'Erreur inconnue'
+      success: false,
+      data: [],
+      reason: 'INTERNAL_ERROR',
+      message: 'Erreur lors de la génération de leads'
     }, { status: 500 })
   }
 }

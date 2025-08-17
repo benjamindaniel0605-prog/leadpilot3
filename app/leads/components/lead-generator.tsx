@@ -132,9 +132,26 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
         body: JSON.stringify(formData)
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        toast.success(`${data.leads.length} leads générés avec succès !`)
+      const data = await response.json()
+      
+      if (data.success) {
+        // Succès
+        let message = data.message
+        
+        // Ajouter les informations sur les filtres relâchés
+        if (data.meta?.relaxed && data.meta.relaxed.length > 0) {
+          const relaxedText = data.meta.relaxed.map((r: string) => {
+            if (r === 'size') return 'taille d\'entreprise'
+            if (r === 'sector') return 'secteur'
+            if (r === 'city') return 'ville'
+            if (r.startsWith('city=')) return `ville (${r.split('=')[1]})`
+            return r
+          }).join(', ')
+          
+          message += ` J'ai assoupli : ${relaxedText}.`
+        }
+        
+        toast.success(message)
         
         // Réinitialiser le formulaire
         setFormData({
@@ -152,12 +169,48 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
         // Notifier le composant parent
         onLeadsGenerated()
       } else {
-        const error = await response.json()
-        toast.error(error.error || 'Erreur lors de la génération')
+        // Erreur avec raison spécifique
+        let errorMessage = data.message
+        
+        // Traduire les raisons d'erreur
+        if (data.reason) {
+          switch (data.reason) {
+            case 'MISSING_API_KEY:APOLLO':
+              errorMessage = 'Clé API Apollo manquante (Project → Settings → Environment Variables).'
+              break
+            case 'PROVIDER_QUOTA_EXCEEDED':
+              errorMessage = 'Quota épuisé sur le provider Apollo.'
+              break
+            case 'INVALID_LOCATION':
+              errorMessage = 'Localisation invalide. Exemple: Paris, France.'
+              break
+            case 'TOO_STRICT_FILTERS:ai_score':
+              errorMessage = 'Filtres trop restrictifs, aucun prospect qualifié trouvé.'
+              break
+            case 'NO_MATCHES_FROM_PROVIDER':
+              errorMessage = 'Apollo n\'a trouvé aucun prospect avec ces critères.'
+              break
+            case 'UNAUTHORIZED':
+              errorMessage = 'Session expirée. Veuillez vous reconnecter.'
+              break
+            case 'INTERNAL_ERROR':
+              errorMessage = 'Erreur interne du serveur. Réessayez plus tard.'
+              break
+            default:
+              errorMessage = data.message || 'Erreur lors de la génération'
+          }
+        }
+        
+        // Ajouter les informations sur les tentatives
+        if (data.meta?.attempts) {
+          errorMessage += ` (${data.meta.attempts} tentatives effectuées)`
+        }
+        
+        toast.error(errorMessage)
       }
     } catch (error) {
       console.error('Erreur génération:', error)
-      toast.error('Erreur lors de la génération des leads')
+      toast.error('Erreur de connexion au serveur')
     } finally {
       setIsGenerating(false)
     }
