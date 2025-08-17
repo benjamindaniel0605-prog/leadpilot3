@@ -30,7 +30,7 @@ Seriez-vous disponible pour un échange de 15 minutes cette semaine ?
 Cordialement,
 [EXPEDITEUR]`,
     description: 'Template simple pour une première prise de contact',
-    timesUsed: 4,
+    timesUsed: 0,
     openRate: 0,
     tags: ['introduction', 'simple']
   },
@@ -53,8 +53,8 @@ Auriez-vous 15 minutes pour discuter de vos besoins ?
 Cordialement,
 [EXPEDITEUR]`,
     description: 'Introduction avec personnalisation basée sur l\'entreprise',
-    timesUsed: 12,
-    openRate: 78,
+    timesUsed: 0,
+    openRate: 0,
     tags: ['introduction', 'personnalisée']
   },
   {
@@ -74,8 +74,8 @@ Voulez-vous en discuter ?
 Cordialement,
 [EXPEDITEUR]`,
     description: 'Template pour promouvoir une offre ou une promotion',
-    timesUsed: 8,
-    openRate: 82,
+    timesUsed: 0,
+    openRate: 0,
     tags: ['commercial', 'offre']
   },
   {
@@ -95,8 +95,8 @@ Je reste à votre disposition pour toute question.
 Cordialement,
 [EXPEDITEUR]`,
     description: 'Template pour relancer un prospect après un premier contact',
-    timesUsed: 15,
-    openRate: 65,
+    timesUsed: 0,
+    openRate: 0,
     tags: ['suivi', 'relance']
   },
   {
@@ -771,4 +771,35 @@ export function getPlanStats(plan: 'free' | 'starter' | 'pro' | 'growth') {
     total: totalTemplates,
     percentage: Math.round((templates.length / totalTemplates) * 100)
   }
+}
+
+// Fonction pour obtenir les statistiques en temps réel
+export const getTemplateStats = (templateId: string) => {
+  // Ici on pourrait récupérer depuis la base de données
+  // Pour l'instant, on retourne des valeurs par défaut
+  return {
+    timesUsed: 0,
+    openRate: 0
+  }
+}
+
+// Fonction pour mettre à jour les statistiques
+export const updateTemplateStats = async (templateId: string, action: 'use' | 'open') => {
+  try {
+    const response = await fetch(`/api/templates/${templateId}/stats`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action })
+    })
+    
+    if (response.ok) {
+      return await response.json()
+    }
+  } catch (error) {
+    console.error('Erreur mise à jour stats template:', error)
+  }
+  
+  return null
 }

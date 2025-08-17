@@ -17,6 +17,7 @@ import {
   emailTemplates, 
   getTemplatesByPlan, 
   getPlanStats, 
+  updateTemplateStats,
   type EmailTemplate 
 } from '@/src/lib/templates-data'
 
@@ -58,6 +59,7 @@ export default function TemplatesPage() {
     subject: '',
     content: ''
   });
+  const [isGeneratingVariation, setIsGeneratingVariation] = useState(false);
 
   // Récupérer les quotas utilisateur
   useEffect(() => {
@@ -108,9 +110,28 @@ export default function TemplatesPage() {
     }
   }
 
-  const handleChooseTemplate = (template: EmailTemplate) => {
+  const handleChooseTemplate = async (template: EmailTemplate) => {
     setSelectedTemplate(template)
     setShowTemplateModal(true)
+    
+    // Mettre à jour les statistiques d'utilisation
+    try {
+      await updateTemplateStats(template.id, 'use')
+    } catch (error) {
+      console.error('Erreur mise à jour stats:', error)
+    }
+  }
+
+  const handleViewTemplate = async (template: EmailTemplate) => {
+    setSelectedTemplate(template)
+    setShowTemplateModal(true)
+    
+    // Mettre à jour les statistiques de visualisation
+    try {
+      await updateTemplateStats(template.id, 'open')
+    } catch (error) {
+      console.error('Erreur mise à jour stats:', error)
+    }
   }
 
   const handleCreatePersonalEmail = () => {
@@ -127,6 +148,44 @@ export default function TemplatesPage() {
       toast.error('Erreur lors de l\'ajout du template')
     }
   }
+
+  const handleAIVariation = async () => {
+    if (!selectedTemplate || isGeneratingVariation) return;
+    
+    setIsGeneratingVariation(true);
+    
+    try {
+      const response = await fetch('/api/ai/generate-email-variation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originalSubject: selectedTemplate.subject,
+          originalContent: selectedTemplate.body,
+          category: selectedTemplate.category
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTemplateEditData({
+          ...templateEditData,
+          subject: data.variation.subject,
+          content: data.variation.content
+        });
+        toast.success('Variation IA générée avec succès !');
+      } else {
+        const error = await response.json();
+        toast.error(`Erreur: ${error.message || 'Impossible de générer la variation'}`);
+      }
+    } catch (error) {
+      console.error('Erreur génération variation IA:', error);
+      toast.error('Erreur lors de la génération de la variation IA');
+    } finally {
+      setIsGeneratingVariation(false);
+    }
+  };
 
   const getPlanColor = (plan: string) => {
     switch (plan) {
@@ -178,7 +237,7 @@ export default function TemplatesPage() {
             className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
           >
             <PlusIcon className="w-5 h-5" />
-            <span>+ Écrire Email Personnel</span>
+            <span>Écrire Email Personnel</span>
           </button>
         </div>
 
@@ -236,7 +295,7 @@ export default function TemplatesPage() {
               
               <div className="flex space-x-2">
                 <button 
-                  onClick={() => handleChooseTemplate(template)}
+                  onClick={() => handleViewTemplate(template)}
                   className="flex-1 flex items-center justify-center space-x-2 bg-gray-700 hover:bg-gray-600 text-gray-300 py-2 px-4 rounded-lg transition-colors"
                 >
                   <EyeIcon className="w-4 h-4" />
@@ -499,7 +558,7 @@ export default function TemplatesPage() {
                       CONTENU ORIGINAL
                     </label>
                     <div className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white min-h-[200px] whitespace-pre-wrap">
-                      {selectedTemplate.content}
+                      {selectedTemplate.body}
                     </div>
                   </div>
                 </div>
@@ -512,9 +571,17 @@ export default function TemplatesPage() {
                   </div>
                   
                   <div className="flex space-x-2 mb-4">
-                    <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md">
-                      Variation IA
-                    </button>
+                                         <button 
+                       onClick={handleAIVariation}
+                       disabled={isGeneratingVariation}
+                       className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                         isGeneratingVariation 
+                           ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                           : 'bg-blue-600 text-white hover:bg-blue-500'
+                       }`}
+                     >
+                       {isGeneratingVariation ? 'Génération...' : 'Variation IA'}
+                     </button>
                     <button className="px-3 py-1 bg-gray-600 text-gray-300 text-sm rounded-md hover:bg-gray-500">
                       Proposer RDV
                     </button>
