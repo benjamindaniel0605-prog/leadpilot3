@@ -155,7 +155,7 @@ async function searchProspectsWithApollo(
     }
   }
 
-  console.log('📤 Requête Apollo (étape A):', JSON.stringify(searchQuery, null, 2))
+  console.log('📤 Requête de recherche (étape A):', JSON.stringify(searchQuery, null, 2))
 
   let response = await fetch('https://api.apollo.io/v1/people/search', {
     method: 'POST',
@@ -168,7 +168,7 @@ async function searchProspectsWithApollo(
 
   if (response.ok) {
     const data = await response.json()
-    console.log(`📥 Réponse Apollo (étape A): ${data.people?.length || 0} prospects`)
+    console.log(`📥 Réponse de recherche (étape A): ${data.people?.length || 0} prospects`)
     
     if (data.people && data.people.length > 0) {
       return { prospects: data.people, relaxed, attempts }
@@ -193,7 +193,7 @@ async function searchProspectsWithApollo(
 
   if (response.ok) {
     const data = await response.json()
-    console.log(`📥 Réponse Apollo (étape B): ${data.people?.length || 0} prospects`)
+    console.log(`📥 Réponse de recherche (étape B): ${data.people?.length || 0} prospects`)
     
     if (data.people && data.people.length > 0) {
       return { prospects: data.people, relaxed, attempts }
@@ -221,7 +221,7 @@ async function searchProspectsWithApollo(
 
       if (response.ok) {
         const data = await response.json()
-        console.log(`📥 Réponse Apollo (${city}): ${data.people?.length || 0} prospects`)
+        console.log(`📥 Réponse de recherche (${city}): ${data.people?.length || 0} prospects`)
         
         if (data.people && data.people.length > 0) {
           relaxed.push(`city=${city}`)
@@ -249,7 +249,7 @@ async function searchProspectsWithApollo(
 
   if (response.ok) {
     const data = await response.json()
-    console.log(`📥 Réponse Apollo (étape D): ${data.people?.length || 0} prospects`)
+    console.log(`📥 Réponse de recherche (étape D): ${data.people?.length || 0} prospects`)
     
     if (data.people && data.people.length > 0) {
       return { prospects: data.people, relaxed, attempts }
@@ -262,7 +262,7 @@ async function searchProspectsWithApollo(
 export async function POST(request: NextRequest): Promise<NextResponse<LeadGenerationResponse>> {
   try {
     console.log('🚀 Début génération leads...')
-    console.log('🔑 Clé Apollo:', APOLLO_API_KEY ? 'Présente' : 'MANQUANTE')
+    console.log('🔑 Clé API de génération:', APOLLO_API_KEY ? 'Présente' : 'MANQUANTE')
     
     const cookieStore = cookies()
 
@@ -314,12 +314,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<LeadGener
 
     // Vérifier que la clé Apollo est configurée
     if (!APOLLO_API_KEY) {
-      console.log('❌ Clé API Apollo non configurée')
+      console.log('❌ Clé API de génération non configurée')
       return NextResponse.json({ 
         success: false,
         data: [],
         reason: 'MISSING_API_KEY:APOLLO',
-        message: 'Service de génération de leads non disponible'
+        message: 'Service de génération de leads temporairement indisponible'
       }, { status: 503 })
     }
 
@@ -337,7 +337,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<LeadGener
     }, null, 2))
 
     // Recherche Apollo avec relaxation automatique
-    console.log('🔍 Début recherche Apollo avec relaxation automatique...')
+    console.log('🔍 Début recherche de prospects avec relaxation automatique...')
     
     const { prospects, relaxed, attempts } = await searchProspectsWithApollo(
       normalizedSector, 
@@ -392,7 +392,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<LeadGener
           relaxed,
           totalFound: prospects.length
         },
-        message: 'Aucun prospect qualifié trouvé'
+        message: 'Aucun prospect qualifié trouvé avec ces critères'
       }, { status: 200 })
     }
 

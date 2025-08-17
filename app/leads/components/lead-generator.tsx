@@ -176,10 +176,10 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
         if (data.reason) {
           switch (data.reason) {
             case 'MISSING_API_KEY:APOLLO':
-              errorMessage = 'Clé API Apollo manquante (Project → Settings → Environment Variables).'
+              errorMessage = 'Service de génération de leads temporairement indisponible. Contactez le support.'
               break
             case 'PROVIDER_QUOTA_EXCEEDED':
-              errorMessage = 'Quota épuisé sur le provider Apollo.'
+              errorMessage = 'Quota de génération épuisé. Réessayez plus tard.'
               break
             case 'INVALID_LOCATION':
               errorMessage = 'Localisation invalide. Exemple: Paris, France.'
@@ -188,7 +188,7 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
               errorMessage = 'Filtres trop restrictifs, aucun prospect qualifié trouvé.'
               break
             case 'NO_MATCHES_FROM_PROVIDER':
-              errorMessage = 'Apollo n\'a trouvé aucun prospect avec ces critères.'
+              errorMessage = 'Aucun prospect trouvé avec ces critères. Essayez de les élargir.'
               break
             case 'UNAUTHORIZED':
               errorMessage = 'Session expirée. Veuillez vous reconnecter.'
