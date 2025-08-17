@@ -6,58 +6,122 @@ import { leads } from '@/lib/schema'
 
 const APOLLO_API_KEY = process.env.APOLLO_API_KEY
 
-// Fonction pour créer des leads simulés (pour tester)
-function createSimulatedLeads(
-  sector: string,
-  companySize: string,
-  location: string,
-  numberOfLeads: number,
-  targetPositions?: string
-) {
-  const companies = [
-    'TechCorp', 'InnovateLab', 'DigitalFlow', 'FutureTech', 'SmartSolutions',
-    'NextGen', 'CloudWorks', 'DataDrive', 'AI Ventures', 'TechHub'
-  ]
-  
-  const firstNames = [
-    'Alexandre', 'Marie', 'Thomas', 'Sophie', 'Lucas', 'Emma', 'Hugo', 'Léa',
-    'Jules', 'Chloé', 'Antoine', 'Camille', 'Maxime', 'Sarah', 'Nicolas'
-  ]
-  
-  const lastNames = [
-    'Martin', 'Bernard', 'Dubois', 'Thomas', 'Robert', 'Richard', 'Petit',
-    'Durand', 'Leroy', 'Moreau', 'Simon', 'Laurent', 'Lefebvre', 'Michel'
-  ]
-  
-  const positions = [
-    'CEO', 'Directeur Commercial', 'Directeur Marketing', 'CTO', 'CFO',
-    'Directeur des Ventes', 'Responsable Marketing', 'Chef de Projet'
-  ]
+// Fonction pour calculer le score IA basé sur les critères
+function calculateAIScore(
+  prospect: any,
+  userSector: string,
+  userCompanySize: string,
+  userLocation: string,
+  userTargetPositions: string
+): number {
+  let score = 50 // Score de base
 
-  const leads = []
-  
-  for (let i = 0; i < numberOfLeads; i++) {
-    const company = companies[Math.floor(Math.random() * companies.length)]
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
-    const position = positions[Math.floor(Math.random() * positions.length)]
+  // Score par secteur (0-20 points)
+  if (userSector && prospect.organization?.industry) {
+    const userSectors = userSector.toLowerCase().split(',').map(s => s.trim())
+    const prospectIndustry = prospect.organization.industry.toLowerCase()
     
-    leads.push({
-      firstName,
-      lastName,
-      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${company.toLowerCase()}.com`,
-      company,
-      sector: sector || 'Technologie',
-      position,
-      score: Math.floor(Math.random() * 30) + 70, // Score entre 70 et 100
-      status: 'new'
-    })
+    if (userSectors.some(sector => prospectIndustry.includes(sector))) {
+      score += 20
+    } else if (userSectors.some(sector => 
+      ['tech', 'technology', 'software', 'saas'].includes(sector) && 
+      ['tech', 'technology', 'software', 'saas'].some(tech => prospectIndustry.includes(tech))
+    )) {
+      score += 15
+    }
   }
-  
-  return leads
+
+  // Score par taille d'entreprise (0-15 points)
+  if (userCompanySize && prospect.organization?.employee_count_range) {
+    const userSize = userCompanySize
+    const prospectSize = prospect.organization.employee_count_range
+    
+    if (userSize === prospectSize) {
+      score += 15
+    } else if (userSize.includes('1-10') && prospectSize.includes('1-10')) {
+      score += 12
+    } else if (userSize.includes('11-50') && prospectSize.includes('11-50')) {
+      score += 12
+    } else if (userSize.includes('51-200') && prospectSize.includes('51-200')) {
+      score += 12
+    }
+  }
+
+  // Score par localisation (0-15 points)
+  if (userLocation && prospect.organization?.location) {
+    const userLoc = userLocation.toLowerCase()
+    const prospectLoc = prospect.organization.location.toLowerCase()
+    
+    if (prospectLoc.includes(userLoc) || userLoc.includes(prospectLoc)) {
+      score += 15
+    } else if (userLoc.includes('france') && prospectLoc.includes('france')) {
+      score += 15
+    } else if (userLoc.includes('france') && prospectLoc.includes('europe')) {
+      score += 10
+    }
+  }
+
+  // Score par poste (0-20 points)
+  if (userTargetPositions && prospect.title) {
+    const userPositions = userTargetPositions.toLowerCase().split(',').map(p => p.trim())
+    const prospectTitle = prospect.title.toLowerCase()
+    
+    if (userPositions.some(pos => prospectTitle.includes(pos))) {
+      score += 20
+    } else if (userPositions.some(pos => 
+      ['ceo', 'directeur', 'manager'].includes(pos) && 
+      ['ceo', 'director', 'manager', 'head'].some(title => prospectTitle.includes(title))
+    )) {
+      score += 15
+    }
+  }
+
+  // Bonus pour les prospects avec email (0-10 points)
+  if (prospect.email) {
+    score += 10
+  }
+
+  // Bonus pour les prospects avec LinkedIn (0-5 points)
+  if (prospect.linkedin_url) {
+    score += 5
+  }
+
+  // Limiter le score entre 0 et 100
+  return Math.min(100, Math.max(0, score))
 }
 
-// Fonction Apollo (gardée pour plus tard)
+// Fonction pour filtrer et trier les prospects par score
+function filterAndSortProspects(
+  prospects: any[],
+  userSector: string,
+  userCompanySize: string,
+  userLocation: string,
+  userTargetPositions: string,
+  numberOfLeads: number
+) {
+  // Calculer le score pour chaque prospect
+  const scoredProspects = prospects.map(prospect => ({
+    ...prospect,
+    aiScore: calculateAIScore(
+      prospect,
+      userSector,
+      userCompanySize,
+      userLocation,
+      userTargetPositions
+    )
+  }))
+
+  // Filtrer les prospects avec un score minimum de 60
+  const qualifiedProspects = scoredProspects.filter(prospect => prospect.aiScore >= 60)
+
+  // Trier par score décroissant
+  const sortedProspects = qualifiedProspects.sort((a, b) => b.aiScore - a.aiScore)
+
+  // Retourner le nombre demandé
+  return sortedProspects.slice(0, numberOfLeads)
+}
+
+// Fonction Apollo pour récupérer de vrais prospects
 async function searchProspectsWithApollo(
   sector: string,
   companySize: string,
@@ -66,13 +130,13 @@ async function searchProspectsWithApollo(
   targetPositions?: string
 ): Promise<any[]> {
   try {
-    console.log('🔍 Tentative de recherche Apollo...')
+    console.log('🔍 Recherche Apollo pour de vrais prospects...')
     
-    // Construire la requête Apollo avec des critères moins restrictifs
+    // Construire la requête Apollo avec des critères intelligents
     const searchQuery: any = {
       api_key: APOLLO_API_KEY,
       page: 1,
-      per_page: Math.min(numberOfLeads * 3, 100),
+      per_page: Math.min(numberOfLeads * 5, 200), // Récupérer plus pour avoir du choix
       q_organization_domains: "",
       q_organization_locations: [location]
     }
@@ -126,7 +190,7 @@ async function searchProspectsWithApollo(
       const fallbackQuery = {
         api_key: APOLLO_API_KEY,
         page: 1,
-        per_page: Math.min(numberOfLeads * 3, 100),
+        per_page: Math.min(numberOfLeads * 5, 200),
         q_organization_locations: [location]
       }
       
@@ -162,7 +226,7 @@ async function searchProspectsWithApollo(
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Début génération leads...')
+    console.log('🚀 Début génération leads qualifiés...')
     
     const cookieStore = cookies()
 
@@ -200,21 +264,72 @@ export async function POST(request: NextRequest) {
     
     console.log('📋 Critères reçus:', { sector, companySize, location, numberOfLeads, targetPositions, precision })
 
-    // MODE TEST : Utiliser des données simulées au lieu d'Apollo
-    console.log('🧪 MODE TEST : Génération de leads simulés...')
+    // Vérifier que la clé Apollo est configurée
+    if (!APOLLO_API_KEY) {
+      console.log('❌ Clé API Apollo non configurée')
+      return NextResponse.json({ 
+        error: 'Service de génération de leads non disponible',
+        details: 'Clé API Apollo manquante'
+      }, { status: 503 })
+    }
+
+    // Récupérer de vrais prospects Apollo
+    console.log('🔍 Récupération prospects Apollo...')
     
-    const simulatedLeads = createSimulatedLeads(
+    const apolloProspects = await searchProspectsWithApollo(
       sector, 
       companySize, 
       location, 
       numberOfLeads, 
       targetPositions
     )
+
+    if (apolloProspects.length === 0) {
+      console.log('❌ Aucun prospect trouvé avec ces critères')
+      return NextResponse.json({ 
+        error: 'Aucun prospect trouvé avec ces critères',
+        details: 'Essayez de modifier vos critères de recherche ou contactez le support'
+      }, { status: 404 })
+    }
+
+    console.log(`✅ ${apolloProspects.length} prospects Apollo trouvés`)
     
-    console.log('🎭 Leads simulés créés:', simulatedLeads)
+    // Filtrer et trier par score IA
+    const qualifiedProspects = filterAndSortProspects(
+      apolloProspects,
+      sector,
+      companySize,
+      location,
+      targetPositions,
+      numberOfLeads
+    )
+    
+    if (qualifiedProspects.length === 0) {
+      console.log('❌ Aucun prospect qualifié après filtrage IA')
+      return NextResponse.json({ 
+        error: 'Aucun prospect qualifié trouvé',
+        details: 'Vos critères sont trop restrictifs. Essayez de les élargir.'
+      }, { status: 404 })
+    }
+    
+    console.log(`🎯 ${qualifiedProspects.length} prospects qualifiés après filtrage`)
+    
+    // Convertir en format leads
+    const finalLeads = qualifiedProspects.map(prospect => ({
+      firstName: prospect.first_name || prospect.firstName || 'Prénom',
+      lastName: prospect.last_name || prospect.lastName || 'Nom',
+      email: prospect.email || `${prospect.first_name || 'prenom'}.${prospect.last_name || 'nom'}@${prospect.organization?.name || 'company'}.com`,
+      company: prospect.organization?.name || 'Entreprise',
+      sector: prospect.organization?.industry || sector || 'Technologie',
+      position: prospect.title || 'Poste',
+      aiScore: prospect.aiScore || 75,
+      status: 'new'
+    }))
+    
+    console.log('🎭 Leads finaux créés:', finalLeads)
 
     // Sauvegarder les leads en base avec Drizzle
-    const leadsToSave = simulatedLeads.map(lead => ({
+    const leadsToSave = finalLeads.map(lead => ({
       userId: user.id,
       firstName: lead.firstName,
       lastName: lead.lastName,
@@ -222,9 +337,9 @@ export async function POST(request: NextRequest) {
       company: lead.company,
       sector: lead.sector,
       position: lead.position,
-      score: lead.score,
+      aiScore: lead.aiScore,
       status: lead.status,
-      source: 'simulated'
+      source: 'apollo'
     }))
 
     const savedLeads = []
@@ -239,13 +354,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       leads: savedLeads,
-      message: `${numberOfLeads} lead${numberOfLeads > 1 ? 's' : ''} généré${numberOfLeads > 1 ? 's' : ''} avec succès !`
+      message: `${numberOfLeads} lead${numberOfLeads > 1 ? 's' : ''} qualifié${numberOfLeads > 1 ? 's' : ''} généré${numberOfLeads > 1 ? 's' : ''} avec succès !`,
+      source: 'apollo',
+      totalFound: apolloProspects.length,
+      qualifiedCount: qualifiedProspects.length
     })
 
   } catch (error) {
     console.error('❌ Erreur générale:', error)
     return NextResponse.json({ 
-      error: 'Erreur interne du serveur',
+      error: 'Erreur lors de la génération de leads',
       details: error instanceof Error ? error.message : 'Erreur inconnue'
     }, { status: 500 })
   }
