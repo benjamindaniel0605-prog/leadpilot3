@@ -132,7 +132,7 @@ async function searchProspectsWithApollo(
   try {
     console.log('🔍 Recherche Apollo pour de vrais prospects...')
     
-    // Construire la requête Apollo avec des critères intelligents
+    // Construire la requête Apollo avec des critères moins restrictifs
     const searchQuery: any = {
       api_key: APOLLO_API_KEY,
       page: 1,
