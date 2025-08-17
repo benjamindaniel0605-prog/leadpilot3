@@ -7,7 +7,10 @@ import {
   SparklesIcon,
   LockClosedIcon,
   DocumentTextIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  XMarkIcon,
+  PencilIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline'
 import { toast } from 'sonner'
 import { 
@@ -40,9 +43,21 @@ interface UserQuotas {
 export default function TemplatesPage() {
   const [quotas, setQuotas] = useState<UserQuotas | null>(null)
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'free' | 'starter' | 'pro' | 'growth'>('all')
-  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null)
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showCustomEmailModal, setShowCustomEmailModal] = useState(false);
+  const [showTemplateEditModal, setShowTemplateEditModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [customEmailData, setCustomEmailData] = useState({
+    name: '',
+    subject: '',
+    content: ''
+  });
+  const [templateEditData, setTemplateEditData] = useState({
+    name: '',
+    subject: '',
+    content: ''
+  });
 
   // Récupérer les quotas utilisateur
   useEffect(() => {
@@ -99,7 +114,7 @@ export default function TemplatesPage() {
   }
 
   const handleCreatePersonalEmail = () => {
-    setShowCreateModal(true)
+    setShowCustomEmailModal(true)
   }
 
   const handleUseTemplate = async (templateName: string) => {
@@ -228,7 +243,15 @@ export default function TemplatesPage() {
                   <span>Voir</span>
                 </button>
                 <button 
-                  onClick={() => handleChooseTemplate(template)}
+                  onClick={() => {
+                    setSelectedTemplate(template);
+                    setTemplateEditData({
+                      name: template.name,
+                      subject: template.subject,
+                      content: template.body
+                    });
+                    setShowTemplateEditModal(true);
+                  }}
                   className="flex-1 flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
                 >
                   <SparklesIcon className="w-4 h-4" />
@@ -343,6 +366,206 @@ export default function TemplatesPage() {
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
                 >
                   Créer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Email Personnel */}
+        {showCustomEmailModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Créer un Email Personnalisé
+                  </h3>
+                  <p className="text-gray-300 text-sm">
+                    Rédigez votre propre template d'email. Disponible pour tous les plans.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCustomEmailModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Nom de l'email
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Email de présentation"
+                    value={customEmailData.name}
+                    onChange={(e) => setCustomEmailData({...customEmailData, name: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Objet de l'email
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Collaboration avec [ENTREPRISE]"
+                    value={customEmailData.subject}
+                    onChange={(e) => setCustomEmailData({...customEmailData, subject: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Contenu de l'email
+                  </label>
+                  <textarea
+                    rows={8}
+                    value={customEmailData.content}
+                    onChange={(e) => setCustomEmailData({...customEmailData, content: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Bonjour [PRENOM],&#10;J'espère que vous allez bien. Je me permets de vous contacter car...&#10;&#10;Cordialement,&#10;[EXPEDITEUR]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowCustomEmailModal(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success('Email personnalisé créé et ajouté à "Mes Emails"');
+                    setShowCustomEmailModal(false);
+                    setCustomEmailData({ name: '', subject: '', content: '' });
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors"
+                >
+                  Créer l'Email
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Édition Template */}
+        {showTemplateEditModal && selectedTemplate && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center space-x-3">
+                  <h3 className="text-xl font-semibold text-white">
+                    Créer un Email Personnalisé
+                  </h3>
+                  <span className="px-3 py-1 bg-blue-600 text-white text-sm rounded-full">
+                    {selectedTemplate.category}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowTemplateEditModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Colonne gauche - Template de base */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <DocumentTextIcon className="h-5 w-5 text-blue-400" />
+                    <h4 className="text-lg font-medium text-white">Template de Base</h4>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      OBJET ORIGINAL
+                    </label>
+                    <div className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white min-h-[40px] flex items-center">
+                      {selectedTemplate.subject}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      CONTENU ORIGINAL
+                    </label>
+                    <div className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white min-h-[200px] whitespace-pre-wrap">
+                      {selectedTemplate.content}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Colonne droite - Version personnalisée */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <PencilIcon className="h-5 w-5 text-blue-400" />
+                    <h4 className="text-lg font-medium text-white">Votre Version</h4>
+                  </div>
+                  
+                  <div className="flex space-x-2 mb-4">
+                    <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md">
+                      Variation IA
+                    </button>
+                    <button className="px-3 py-1 bg-gray-600 text-gray-300 text-sm rounded-md hover:bg-gray-500">
+                      Proposer RDV
+                    </button>
+                    <button className="px-3 py-1 bg-gray-600 text-gray-300 text-sm rounded-md hover:bg-gray-500">
+                      Original
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Objet de l'email
+                    </label>
+                    <input
+                      type="text"
+                      value={templateEditData.subject}
+                      onChange={(e) => setTemplateEditData({...templateEditData, subject: e.target.value})}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Contenu de l'email
+                    </label>
+                    <textarea
+                      rows={10}
+                      value={templateEditData.content}
+                      onChange={(e) => setTemplateEditData({...templateEditData, content: e.target.value})}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={() => setShowTemplateEditModal(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-500 transition-colors flex items-center space-x-2"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  <span>Annuler</span>
+                </button>
+                <button
+                  onClick={() => {
+                    toast.success('Template personnalisé créé et ajouté à "Mes Emails"');
+                    setShowTemplateEditModal(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-colors flex items-center space-x-2"
+                >
+                  <CheckIcon className="h-4 w-4" />
+                  <span>Enregistrer</span>
                 </button>
               </div>
             </div>
