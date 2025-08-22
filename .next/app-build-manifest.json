@@ -16,14 +16,6 @@
       "static/css/830e8aba389569dc.css",
       "static/chunks/app/layout-e9c1ae0a0dffa898.js"
     ],
-    "/calendar/page": [
-      "static/chunks/webpack-b7df73bb99ba5c2f.js",
-      "static/chunks/fd9d1056-a921b3984ede532d.js",
-      "static/chunks/938-ab166cab71ae9e75.js",
-      "static/chunks/main-app-c143b41f5fb6d75f.js",
-      "static/chunks/424-9d0835ec1140f40b.js",
-      "static/chunks/app/calendar/page-dec81ca70cef7a5d.js"
-    ],
     "/auth/confirm/page": [
       "static/chunks/webpack-b7df73bb99ba5c2f.js",
       "static/chunks/fd9d1056-a921b3984ede532d.js",
@@ -48,6 +40,22 @@
       "static/chunks/424-9d0835ec1140f40b.js",
       "static/chunks/app/campaigns/page-558d60024708da7c.js"
     ],
+    "/calendar/page": [
+      "static/chunks/webpack-b7df73bb99ba5c2f.js",
+      "static/chunks/fd9d1056-a921b3984ede532d.js",
+      "static/chunks/938-ab166cab71ae9e75.js",
+      "static/chunks/main-app-c143b41f5fb6d75f.js",
+      "static/chunks/424-9d0835ec1140f40b.js",
+      "static/chunks/app/calendar/page-abd024be7300a7e1.js"
+    ],
+    "/leads/new/page": [
+      "static/chunks/webpack-b7df73bb99ba5c2f.js",
+      "static/chunks/fd9d1056-a921b3984ede532d.js",
+      "static/chunks/938-ab166cab71ae9e75.js",
+      "static/chunks/main-app-c143b41f5fb6d75f.js",
+      "static/chunks/176-c38dba90ad56ef09.js",
+      "static/chunks/app/leads/new/page-bf5eb5b964abc95a.js"
+    ],
     "/dashboard/page": [
       "static/chunks/webpack-b7df73bb99ba5c2f.js",
       "static/chunks/fd9d1056-a921b3984ede532d.js",
@@ -64,14 +72,6 @@
       "static/chunks/176-c38dba90ad56ef09.js",
       "static/chunks/424-9d0835ec1140f40b.js",
       "static/chunks/app/leads/page-62fe3b7cb147448e.js"
-    ],
-    "/leads/new/page": [
-      "static/chunks/webpack-b7df73bb99ba5c2f.js",
-      "static/chunks/fd9d1056-a921b3984ede532d.js",
-      "static/chunks/938-ab166cab71ae9e75.js",
-      "static/chunks/main-app-c143b41f5fb6d75f.js",
-      "static/chunks/176-c38dba90ad56ef09.js",
-      "static/chunks/app/leads/new/page-bf5eb5b964abc95a.js"
     ],
     "/login/page": [
       "static/chunks/webpack-b7df73bb99ba5c2f.js",
