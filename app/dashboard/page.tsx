@@ -72,11 +72,11 @@ export default function DashboardPage() {
           
           // Mettre à jour les stats avec les vraies données
           setStats({
-            leadsGenerated: quotasData.usage.leads,
+            leadsGenerated: quotasData.leadsUsed,
             emailsSent: 0, // À implémenter plus tard
             openRate: 0, // À implémenter plus tard
             appointmentsBooked: 0, // À implémenter plus tard
-            leadsVariation: quotasData.variations?.leads || 0
+            leadsVariation: 0 // À calculer plus tard
           })
           
           // Mettre à jour l'utilisateur avec les vraies données
@@ -86,8 +86,8 @@ export default function DashboardPage() {
             firstName: 'Benjamin', // À récupérer depuis l'auth
             lastName: 'Daniel', // À récupérer depuis l'auth
             plan: quotasData.plan || 'free',
-            leadsUsed: quotasData.usage.leads,
-            aiVariationsUsed: quotasData.usage.variations
+            leadsUsed: quotasData.leadsUsed,
+            aiVariationsUsed: quotasData.variationsUsed
           })
         }
         

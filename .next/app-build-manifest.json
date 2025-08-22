@@ -32,14 +32,6 @@
       "static/chunks/424-9d0835ec1140f40b.js",
       "static/chunks/app/calendar/page-426ed1d91c13e372.js"
     ],
-    "/campaigns/new/page": [
-      "static/chunks/webpack-b257364b884a6228.js",
-      "static/chunks/fd9d1056-a921b3984ede532d.js",
-      "static/chunks/458-93aa3f3c70dd8747.js",
-      "static/chunks/main-app-dd21580d4571e64d.js",
-      "static/chunks/176-c38dba90ad56ef09.js",
-      "static/chunks/app/campaigns/new/page-591893b1498a73d9.js"
-    ],
     "/campaigns/page": [
       "static/chunks/webpack-b257364b884a6228.js",
       "static/chunks/fd9d1056-a921b3984ede532d.js",
@@ -54,7 +46,15 @@
       "static/chunks/458-93aa3f3c70dd8747.js",
       "static/chunks/main-app-dd21580d4571e64d.js",
       "static/chunks/176-c38dba90ad56ef09.js",
-      "static/chunks/app/dashboard/page-170ec416a64701bd.js"
+      "static/chunks/app/dashboard/page-62ea0b9c4e828934.js"
+    ],
+    "/campaigns/new/page": [
+      "static/chunks/webpack-b257364b884a6228.js",
+      "static/chunks/fd9d1056-a921b3984ede532d.js",
+      "static/chunks/458-93aa3f3c70dd8747.js",
+      "static/chunks/main-app-dd21580d4571e64d.js",
+      "static/chunks/176-c38dba90ad56ef09.js",
+      "static/chunks/app/campaigns/new/page-591893b1498a73d9.js"
     ],
     "/leads/new/page": [
       "static/chunks/webpack-b257364b884a6228.js",
@@ -71,15 +71,7 @@
       "static/chunks/main-app-dd21580d4571e64d.js",
       "static/chunks/176-c38dba90ad56ef09.js",
       "static/chunks/424-9d0835ec1140f40b.js",
-      "static/chunks/app/leads/page-1b53eb35aad7b5f0.js"
-    ],
-    "/login/page": [
-      "static/chunks/webpack-b257364b884a6228.js",
-      "static/chunks/fd9d1056-a921b3984ede532d.js",
-      "static/chunks/458-93aa3f3c70dd8747.js",
-      "static/chunks/main-app-dd21580d4571e64d.js",
-      "static/chunks/176-c38dba90ad56ef09.js",
-      "static/chunks/app/login/page-d8a256b349068a64.js"
+      "static/chunks/app/leads/page-1cc6c6e07fd8f456.js"
     ],
     "/mes-emails/page": [
       "static/chunks/webpack-b257364b884a6228.js",
@@ -89,6 +81,14 @@
       "static/chunks/176-c38dba90ad56ef09.js",
       "static/chunks/424-9d0835ec1140f40b.js",
       "static/chunks/app/mes-emails/page-9b2fc379a7080dde.js"
+    ],
+    "/login/page": [
+      "static/chunks/webpack-b257364b884a6228.js",
+      "static/chunks/fd9d1056-a921b3984ede532d.js",
+      "static/chunks/458-93aa3f3c70dd8747.js",
+      "static/chunks/main-app-dd21580d4571e64d.js",
+      "static/chunks/176-c38dba90ad56ef09.js",
+      "static/chunks/app/login/page-d8a256b349068a64.js"
     ],
     "/mesemails/page": [
       "static/chunks/webpack-b257364b884a6228.js",

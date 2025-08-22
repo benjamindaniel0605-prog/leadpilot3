@@ -15,22 +15,12 @@ import { toast } from 'sonner'
 
 interface UserQuotas {
   plan: string
-  limits: {
-    leads: number
-    variations: number
-  }
-  usage: {
-    leads: number
-    variations: number
-  }
-  remaining: {
-    leads: number
-    variations: number
-  }
-  percentage: {
-    leads: number
-    variations: number
-  }
+  leadsUsed: number
+  leadsLimit: number
+  variationsUsed: number
+  variationsLimit: number
+  templatesAccessible: number
+  templatesLimit: number
 }
 
 interface LeadGeneratorProps {
@@ -116,8 +106,9 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
       return
     }
 
-    if (formData.numberOfLeads > (quotas?.remaining.leads || 0)) {
-      toast.error(`Vous n'avez que ${quotas?.remaining.leads} leads disponibles`)
+    const remainingLeads = quotas ? quotas.leadsLimit - quotas.leadsUsed : 0
+    if (formData.numberOfLeads > remainingLeads) {
+      toast.error(`Vous n'avez que ${remainingLeads} leads disponibles`)
       return
     }
 
@@ -322,27 +313,29 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
       </div>
 
       {/* Affichage des quotas */}
-      <div className="mb-6 p-4 bg-gray-700 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-300">
-              Plan {quotas.plan === 'free' ? 'Free' : quotas.plan === 'starter' ? 'Starter' : quotas.plan === 'pro' ? 'Pro' : 'Growth'}
-            </span>
-            <span className="text-xs text-gray-400">
-              {quotas.usage.leads}/{quotas.limits.leads} leads utilisés
-            </span>
-          </div>
-          <div className="text-right">
-            <div className="text-sm text-gray-400">Limite: {quotas.remaining.leads} leads disponibles</div>
-            <div className="w-32 bg-gray-600 rounded-full h-2 mt-1">
-              <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${quotas.percentage.leads}%` }}
-              ></div>
+      {quotas && (
+        <div className="mb-6 p-4 bg-gray-700 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-300">
+                Plan {quotas.plan === 'free' ? 'Free' : quotas.plan === 'starter' ? 'Starter' : quotas.plan === 'pro' ? 'Pro' : 'Growth'}
+              </span>
+              <span className="text-xs text-gray-400">
+                {quotas.leadsUsed}/{quotas.leadsLimit} leads utilisés
+              </span>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-400">Limite: {quotas.leadsLimit - quotas.leadsUsed} leads disponibles</div>
+              <div className="w-32 bg-gray-600 rounded-full h-2 mt-1">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(quotas.leadsUsed / quotas.leadsLimit) * 100}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Formulaire de génération */}
       {isExpanded && (
@@ -456,19 +449,19 @@ export default function LeadGenerator({ onLeadsGenerated }: LeadGeneratorProps) 
                   value={formData.numberOfLeads}
                   onChange={(e) => handleInputChange('numberOfLeads', parseInt(e.target.value) || 1)}
                   min="1"
-                  max={quotas.remaining.leads}
+                  max={quotas ? quotas.leadsLimit - quotas.leadsUsed : 1}
                   className="w-20 text-center bg-gray-700 border border-gray-600 rounded-lg text-white py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
-                  onClick={() => handleInputChange('numberOfLeads', Math.min(quotas.remaining.leads, formData.numberOfLeads + 1))}
-                  disabled={formData.numberOfLeads >= quotas.remaining.leads}
+                  onClick={() => handleInputChange('numberOfLeads', Math.min(quotas ? quotas.leadsLimit - quotas.leadsUsed : 1, formData.numberOfLeads + 1))}
+                  disabled={formData.numberOfLeads >= (quotas ? quotas.leadsLimit - quotas.leadsUsed : 1)}
                   className="w-10 h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
                 >
                   +
                 </button>
               </div>
               <div className="text-xs text-gray-400 mt-1">
-                Limite: {quotas.remaining.leads} leads disponibles
+                Limite: {quotas ? quotas.leadsLimit - quotas.leadsUsed : 0} leads disponibles
               </div>
             </div>
           </div>
