@@ -38,15 +38,7 @@
       "static/chunks/938-ab166cab71ae9e75.js",
       "static/chunks/main-app-c143b41f5fb6d75f.js",
       "static/chunks/424-9d0835ec1140f40b.js",
-      "static/chunks/app/campaigns/page-4fe6237c3a23d21e.js"
-    ],
-    "/dashboard/page": [
-      "static/chunks/webpack-2e016838025f5e44.js",
-      "static/chunks/fd9d1056-a921b3984ede532d.js",
-      "static/chunks/938-ab166cab71ae9e75.js",
-      "static/chunks/main-app-c143b41f5fb6d75f.js",
-      "static/chunks/176-c38dba90ad56ef09.js",
-      "static/chunks/app/dashboard/page-227980ddaa044483.js"
+      "static/chunks/app/campaigns/page-e46d9085850f08fb.js"
     ],
     "/leads/new/page": [
       "static/chunks/webpack-2e016838025f5e44.js",
@@ -55,6 +47,14 @@
       "static/chunks/main-app-c143b41f5fb6d75f.js",
       "static/chunks/176-c38dba90ad56ef09.js",
       "static/chunks/app/leads/new/page-bf5eb5b964abc95a.js"
+    ],
+    "/dashboard/page": [
+      "static/chunks/webpack-2e016838025f5e44.js",
+      "static/chunks/fd9d1056-a921b3984ede532d.js",
+      "static/chunks/938-ab166cab71ae9e75.js",
+      "static/chunks/main-app-c143b41f5fb6d75f.js",
+      "static/chunks/176-c38dba90ad56ef09.js",
+      "static/chunks/app/dashboard/page-227980ddaa044483.js"
     ],
     "/leads/page": [
       "static/chunks/webpack-2e016838025f5e44.js",
@@ -82,6 +82,13 @@
       "static/chunks/424-9d0835ec1140f40b.js",
       "static/chunks/app/mes-emails/page-42e38507a514a45d.js"
     ],
+    "/payment-success/page": [
+      "static/chunks/webpack-2e016838025f5e44.js",
+      "static/chunks/fd9d1056-a921b3984ede532d.js",
+      "static/chunks/938-ab166cab71ae9e75.js",
+      "static/chunks/main-app-c143b41f5fb6d75f.js",
+      "static/chunks/app/payment-success/page-628b69b81ec6fa2d.js"
+    ],
     "/mesemails/page": [
       "static/chunks/webpack-2e016838025f5e44.js",
       "static/chunks/fd9d1056-a921b3984ede532d.js",
@@ -98,13 +105,6 @@
       "static/chunks/main-app-c143b41f5fb6d75f.js",
       "static/chunks/176-c38dba90ad56ef09.js",
       "static/chunks/app/page-a4fcaab57b7addc6.js"
-    ],
-    "/payment-success/page": [
-      "static/chunks/webpack-2e016838025f5e44.js",
-      "static/chunks/fd9d1056-a921b3984ede532d.js",
-      "static/chunks/938-ab166cab71ae9e75.js",
-      "static/chunks/main-app-c143b41f5fb6d75f.js",
-      "static/chunks/app/payment-success/page-628b69b81ec6fa2d.js"
     ],
     "/pricing/page": [
       "static/chunks/webpack-2e016838025f5e44.js",

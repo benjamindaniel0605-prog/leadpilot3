@@ -59,11 +59,22 @@ export default function CampaignsPage() {
         const response = await fetch('/api/leads')
         if (response.ok) {
           const data = await response.json()
-          const leadsWithSelection = data.map((lead: any) => ({
-            ...lead,
+          // L'API retourne { leads: [...] }
+          const userLeads = data.leads || []
+          const leadsWithSelection = userLeads.map((lead: any) => ({
+            id: lead.id,
+            name: `${lead.firstName} ${lead.lastName}`,
+            company: lead.company,
+            title: lead.position,
+            email: lead.email,
+            aiScore: lead.aiScore || 0,
+            createdAt: lead.createdAt,
             selected: false
           }))
           setLeads(leadsWithSelection)
+        } else {
+          console.error('Erreur API:', response.status)
+          toast.error('Erreur lors du chargement des leads')
         }
       } catch (error) {
         console.error('Erreur lors de la récupération des leads:', error)
