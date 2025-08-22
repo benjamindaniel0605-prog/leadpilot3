@@ -102,16 +102,22 @@ export default function StatisticsPage() {
           
           const userLeads = leadsData.leads || []
           const leadsUsed = quotasData.leadsUsed || 0
+          const leadsLastMonth = quotasData.leadsLastMonth || 0
+          
+          // Calculer la variation des leads
+          const leadsVariation = leadsLastMonth > 0 
+            ? ((leadsUsed - leadsLastMonth) / leadsLastMonth) * 100 
+            : leadsUsed > 0 ? 100 : 0
           
           // Calculer les statistiques basées sur les vraies données
           const newStats: Statistics = {
-            leadsGenerated: userLeads.length,
-            emailsSent: Math.floor(userLeads.length * 0.3), // Simulation
-            openRate: userLeads.length > 0 ? Math.floor(Math.random() * 30) + 20 : 0,
-            clickRate: userLeads.length > 0 ? Math.floor(Math.random() * 10) + 5 : 0,
-            conversionRate: userLeads.length > 0 ? Math.floor(Math.random() * 5) + 1 : 0,
-            appointmentsBooked: Math.floor(userLeads.length * 0.1),
-            revenue: userLeads.length * 50 // Simulation
+            leadsGenerated: leadsUsed,
+            emailsSent: Math.floor(leadsUsed * 0.3), // Simulation
+            openRate: leadsUsed > 0 ? Math.floor(Math.random() * 30) + 20 : 0,
+            clickRate: leadsUsed > 0 ? Math.floor(Math.random() * 10) + 5 : 0,
+            conversionRate: leadsUsed > 0 ? Math.floor(Math.random() * 5) + 1 : 0,
+            appointmentsBooked: Math.floor(leadsUsed * 0.1),
+            revenue: leadsUsed * 50 // Simulation
           }
           
           setStatistics(newStats)

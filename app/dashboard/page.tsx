@@ -70,13 +70,18 @@ export default function DashboardPage() {
         if (quotasResponse.ok) {
           const quotasData = await quotasResponse.json()
           
+          // Calculer la variation des leads
+          const leadsVariation = quotasData.leadsLastMonth > 0 
+            ? ((quotasData.leadsUsed - quotasData.leadsLastMonth) / quotasData.leadsLastMonth) * 100 
+            : quotasData.leadsUsed > 0 ? 100 : 0
+
           // Mettre à jour les stats avec les vraies données
           setStats({
             leadsGenerated: quotasData.leadsUsed,
             emailsSent: 0, // À implémenter plus tard
             openRate: 0, // À implémenter plus tard
             appointmentsBooked: 0, // À implémenter plus tard
-            leadsVariation: 0 // À calculer plus tard
+            leadsVariation: Math.round(leadsVariation)
           })
           
           // Mettre à jour l'utilisateur avec les vraies données
