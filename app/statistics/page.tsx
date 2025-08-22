@@ -351,51 +351,71 @@ export default function StatisticsPage() {
 
         {!isStarterOrHigher ? (
           // Contenu verrouillé pour plan Free
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Entonnoir de Conversion */}
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Entonnoir de Conversion */}
+              <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <LockClosedIcon className="w-16 h-16 text-gray-500" />
+                </div>
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-white mb-2">Analyse de l'entonnoir de conversion</h3>
+                </div>
+                <p className="text-gray-400 mb-6">
+                  Suivez vos prospects de la génération à la conversion avec des métriques détaillées.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/pricing'}
+                  className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Upgrader vers Starter
+                </button>
+              </div>
+
+              {/* Analytics avancés */}
+              <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <StarIcon className="w-16 h-16 text-yellow-500" />
+                </div>
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-white mb-2">Analytics avancés avec métriques détaillées</h3>
+                </div>
+                <p className="text-gray-400 mb-6">
+                  Accès aux taux d'ouverture, clics, conversions et tableaux de bord personnalisés.
+                </p>
+                <button
+                  onClick={() => window.location.href = '/pricing'}
+                  className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                >
+                  Upgrader vers Pro
+                </button>
+              </div>
+            </div>
+
+            {/* Performance par Template - Plan Free */}
             <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 text-center">
               <div className="flex items-center justify-center mb-4">
                 <LockClosedIcon className="w-16 h-16 text-gray-500" />
               </div>
               <div className="mb-4">
-                <h3 className="text-xl font-semibold text-white mb-2">Entonnoir de Conversion</h3>
-                <span className="inline-block px-2 py-1 bg-blue-600 text-white text-xs rounded-full mb-3">
-                  Starter+
-                </span>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  Performance par Template
+                  <span className="inline-block px-2 py-1 bg-gray-600 text-white text-xs rounded-full ml-2">
+                    Starter+
+                  </span>
+                </h3>
               </div>
               <p className="text-gray-400 mb-6">
-                Suivez vos prospects de la génération à la conversion avec des métriques détaillées.
+                Analyses détaillées des performances par template. Suivez les taux d'ouverture, clics et conversions pour chaque template d'email.
               </p>
               <button
                 onClick={() => window.location.href = '/pricing'}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors"
+                className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
               >
                 Upgrader vers Starter
               </button>
             </div>
-
-            {/* Métriques Clés */}
-            <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 text-center">
-              <div className="flex items-center justify-center mb-4">
-                <StarIcon className="w-16 h-16 text-yellow-500" />
-              </div>
-              <div className="mb-4">
-                <h3 className="text-xl font-semibold text-white mb-2">Métriques Clés</h3>
-                <span className="inline-block px-2 py-1 bg-yellow-600 text-white text-xs rounded-full mb-3">
-                  Pro+
-                </span>
-              </div>
-              <p className="text-gray-400 mb-6">
-                Accès aux taux d'ouverture, clics, conversions et tableaux de bord personnalisés.
-              </p>
-              <button
-                onClick={() => window.location.href = '/pricing'}
-                className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-500 transition-colors"
-              >
-                Upgrader vers Pro
-              </button>
-            </div>
-          </div>
+          </>
         ) : (
           // Contenu débloqué pour plans payants
           <>

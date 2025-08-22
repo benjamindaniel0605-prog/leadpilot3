@@ -1,13 +1,13 @@
 {
   "/_not-found": "app/_not-found.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
   "/api/ai/generate-email-variation/route": "app/api/ai/generate-email-variation/route.js",
   "/api/auth/register/route": "app/api/auth/register/route.js",
-  "/api/payments/create-checkout/route": "app/api/payments/create-checkout/route.js",
   "/api/leads/[id]/route": "app/api/leads/[id]/route.js",
+  "/api/payments/create-checkout/route": "app/api/payments/create-checkout/route.js",
   "/api/payments/webhook/route": "app/api/payments/webhook/route.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/test/route": "app/api/test/route.js",
   "/api/templates/[id]/stats/route": "app/api/templates/[id]/stats/route.js",
+  "/api/test/route": "app/api/test/route.js",
   "/auth/confirm/page": "app/auth/confirm/page.js",
   "/calendar/page": "app/calendar/page.js",
   "/campaigns/new/page": "app/campaigns/new/page.js",
@@ -22,9 +22,9 @@
   "/payment-success/page": "app/payment-success/page.js",
   "/pricing/page": "app/pricing/page.js",
   "/sequences/page": "app/sequences/page.js",
-  "/templates/page": "app/templates/page.js",
   "/statistics/page": "app/statistics/page.js",
+  "/templates/page": "app/templates/page.js",
   "/api/leads/route": "app/api/leads/route.js",
-  "/api/user/quotas/route": "app/api/user/quotas/route.js",
-  "/api/leads/generate/route": "app/api/leads/generate/route.js"
+  "/api/leads/generate/route": "app/api/leads/generate/route.js",
+  "/api/user/quotas/route": "app/api/user/quotas/route.js"
 }
