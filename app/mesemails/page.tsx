@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   PlusIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
-  DocumentDuplicateIcon
+  DocumentDuplicateIcon,
+  CalendarIcon
 } from '@heroicons/react/24/outline'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -25,11 +26,29 @@ export default function MesEmailsPage() {
   const [selectedEmail, setSelectedEmail] = useState<CustomEmail | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
+  const [userPlan, setUserPlan] = useState<string>('free')
   const [editData, setEditData] = useState({
     name: '',
     subject: '',
     content: ''
   })
+
+  // Récupérer le plan de l'utilisateur
+  useEffect(() => {
+    const fetchUserPlan = async () => {
+      try {
+        const response = await fetch('/api/user/quotas')
+        if (response.ok) {
+          const data = await response.json()
+          setUserPlan(data.plan || 'free')
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération du plan:', error)
+      }
+    }
+
+    fetchUserPlan()
+  }, [])
 
   const handleEdit = (email: CustomEmail) => {
     setSelectedEmail(email)
@@ -75,6 +94,32 @@ export default function MesEmailsPage() {
 
   const handleSuggestMeeting = () => {
     toast.info('Fonctionnalité de proposition de RDV à venir')
+  }
+
+  const handleProposeRDV = (email: CustomEmail) => {
+    // Vérifier si l'utilisateur a un plan Starter ou supérieur
+    if (userPlan === 'free') {
+      toast.error('Le lien de booking est disponible à partir du plan Starter')
+      return
+    }
+
+    // Générer le lien de booking
+    const bookingLink = `https://get-leadpilot.vercel.app/booking/user-id`
+    
+    // Ajouter la phrase de proposition de RDV à la fin de l'email
+    const emailWithRDV = {
+      ...email,
+      content: `${email.content}\n\nSi cela vous convient, veuillez prendre RDV en cliquant sur le lien suivant : ${bookingLink}`
+    }
+
+    // Mettre à jour l'email dans la liste
+    setEmails(emails.map(e => e.id === email.id ? emailWithRDV : e))
+    
+    // Sélectionner l'email modifié pour l'édition
+    setSelectedEmail(emailWithRDV)
+    setShowEditModal(true)
+    
+    toast.success('Proposition de RDV ajoutée à l\'email')
   }
 
   const handleRestoreOriginal = () => {
@@ -219,6 +264,13 @@ export default function MesEmailsPage() {
                   title="Supprimer"
                 >
                   <TrashIcon className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleProposeRDV(email)}
+                  className="p-2 text-green-400 hover:text-white hover:bg-green-600 rounded-md transition-colors"
+                  title="Proposer un RDV"
+                >
+                  <CalendarIcon className="h-4 w-4" />
                 </button>
               </div>
             </div>
