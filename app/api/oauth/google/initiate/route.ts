@@ -17,9 +17,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/settings?error=oauth_config_missing', request.url))
     }
 
-    // Scopes nécessaires pour Gmail
+    // Scopes simplifiés pour le développement
     const scopes = [
-      'https://www.googleapis.com/auth/gmail.send',
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'
     ].join(' ')
@@ -30,8 +29,7 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('redirect_uri', redirectUri)
     authUrl.searchParams.set('response_type', 'code')
     authUrl.searchParams.set('scope', scopes)
-    authUrl.searchParams.set('access_type', 'offline')
-    authUrl.searchParams.set('prompt', 'consent')
+    authUrl.searchParams.set('access_type', 'online')
     authUrl.searchParams.set('state', returnUrl) // Pour rediriger après l'autorisation
 
     console.log('🔗 Redirection vers Google OAuth:', authUrl.toString())

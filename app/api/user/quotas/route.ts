@@ -108,23 +108,14 @@ export async function GET(request: NextRequest) {
 
     const quotas = {
       plan: userPlan,
-      limits,
-      usage: {
-        leads: leadsUsed,
-        variations: variationsUsed
-      },
-      remaining: {
-        leads: Math.max(0, limits.leads - leadsUsed),
-        variations: Math.max(0, limits.variations - variationsUsed)
-      },
-      percentage: {
-        leads: Math.min(100, (leadsUsed / limits.leads) * 100),
-        variations: Math.min(100, (variationsUsed / limits.variations) * 100)
-      },
-      variations: {
-        leads: Math.round(leadsVariation),
-        variations: Math.round(variationsVariation)
-      }
+      leadsUsed: leadsUsed,
+      leadsLimit: limits.leads,
+      variationsUsed: variationsUsed,
+      variationsLimit: limits.variations,
+      templatesAccessible: userPlan === 'free' ? 1 : userPlan === 'starter' ? 5 : userPlan === 'pro' ? 15 : 30,
+      templatesLimit: 30,
+      leadsLastMonth: leadsLastMonth,
+      variationsLastMonth: variationsLastMonth
     }
 
     return NextResponse.json(quotas)
