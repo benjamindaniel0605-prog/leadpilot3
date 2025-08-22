@@ -5,6 +5,8 @@ import { db } from '@/lib/database'
 import { leads } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 
+export const runtime = 'nodejs'
+
 // GET - Récupérer les leads de l'utilisateur
 export async function GET(request: NextRequest) {
   try {

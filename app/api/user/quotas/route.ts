@@ -5,6 +5,8 @@ import { db } from '@/lib/database'
 import { leads } from '@/lib/schema'
 import { eq, and, gte, lt } from 'drizzle-orm'
 
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = cookies()

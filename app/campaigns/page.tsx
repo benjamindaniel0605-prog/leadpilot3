@@ -56,11 +56,18 @@ export default function CampaignsPage() {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
+        console.log('🔍 Récupération des leads...')
         const response = await fetch('/api/leads')
+        console.log('📡 Réponse API:', response.status, response.statusText)
+        
         if (response.ok) {
           const data = await response.json()
+          console.log('📊 Données reçues:', data)
+          
           // L'API retourne { leads: [...] }
           const userLeads = data.leads || []
+          console.log('👥 Leads utilisateur:', userLeads)
+          
           const leadsWithSelection = userLeads.map((lead: any) => ({
             id: lead.id,
             name: `${lead.firstName} ${lead.lastName}`,
@@ -71,13 +78,15 @@ export default function CampaignsPage() {
             createdAt: lead.createdAt,
             selected: false
           }))
+          console.log('✅ Leads formatés:', leadsWithSelection)
           setLeads(leadsWithSelection)
         } else {
-          console.error('Erreur API:', response.status)
-          toast.error('Erreur lors du chargement des leads')
+          const errorData = await response.text()
+          console.error('❌ Erreur API:', response.status, errorData)
+          toast.error(`Erreur ${response.status}: ${response.statusText}`)
         }
       } catch (error) {
-        console.error('Erreur lors de la récupération des leads:', error)
+        console.error('💥 Erreur lors de la récupération des leads:', error)
         toast.error('Erreur lors du chargement des leads')
       } finally {
         setLoading(false)
@@ -245,28 +254,9 @@ export default function CampaignsPage() {
                 </div>
 
                 {/* Liste des emails disponibles */}
-                {customEmails.length === 0 ? (
-                  <div className="px-3 py-4 bg-gray-700 border border-gray-600 rounded-md text-gray-400 text-center">
-                    Aucun email disponible. Créez d'abord des emails dans "Mes Emails".
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {filteredEmails.map((email) => (
-                      <div
-                        key={email.id}
-                        onClick={() => setFormData({...formData, emailId: email.id})}
-                        className={`p-3 rounded-md cursor-pointer transition-colors ${
-                          formData.emailId === email.id
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                        }`}
-                      >
-                        <div className="font-medium">{email.name}</div>
-                        <div className="text-sm opacity-80">{email.subject}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="px-3 py-4 bg-gray-700 border border-gray-600 rounded-md text-gray-400 text-center">
+                  Aucun email disponible. Créez d'abord des emails dans "Mes Emails".
+                </div>
               </div>
 
               {/* Sélection des leads cibles */}
